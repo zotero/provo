@@ -62,7 +62,6 @@ Provo.prototype = {
 		for each(var browser in browsers) {
 			_waitingForBrowsers[browser] = true;
 		}
-		Zotero.debug("Waiting for "+JSON.stringify(_waitingForBrowsers));
 		
 		// Suffix is optional
 		suffix = cmdLine.handleFlagWithParam("provosuffix", false);
@@ -137,7 +136,8 @@ function exit() {
 		var index = [];
 		var directoryEntries = outputDir.directoryEntries;
 		while(directoryEntries.hasMoreElements()) {
-			var filename = directoryEntries.getNext().leafName;
+			var filename = directoryEntries.getNext()
+				.QueryInterface(Components.interfaces.nsILocalFile).leafName;
 			if(/\.json$/.test(filename) && filename !== "index.json") {
 				index.push(filename);
 			}
