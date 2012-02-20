@@ -42,13 +42,13 @@ function runProvo {
 	# Run
 	if [ $MAC_NATIVE == 1 ]; then
 		"$APP_DIRECTORY/Contents/MacOS/zotero" -profile "$TEMP_PROFILE_DIRECTORY" \
-		-provooutputdir "$SCRIPT_DIRECTORY" -provobrowsers "g" -provosuffix "3.0" -jsconsole
+		-provooutputdir "$SCRIPT_DIRECTORY" -provobrowsers "g" -provosuffix "$SUFFIX" -jsconsole
 	elif [ $WIN_NATIVE == 1 ]; then
 		"$APP_DIRECTORY/zotero.exe" -profile "`cygpath -w \"$TEMP_PROFILE_DIRECTORY\"`" \
-		-provooutputdir "`cygpath -w \"$SCRIPT_DIRECTORY\"`" -provobrowsers "g" -provosuffix "3.0"
+		-provooutputdir "`cygpath -w \"$SCRIPT_DIRECTORY\"`" -provobrowsers "g" -provosuffix "$SUFFIX"
 	else
 		"$APP_DIRECTORY/zotero" -profile "$TEMP_PROFILE_DIRECTORY" \
-		-provooutputdir "$SCRIPT_DIRECTORY" -provobrowsers "g" -provosuffix "3.0"
+		-provooutputdir "$SCRIPT_DIRECTORY" -provobrowsers "g" -provosuffix "$SUFFIX"
 	fi
 }
 
