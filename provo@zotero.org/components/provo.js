@@ -132,6 +132,23 @@ function writeData(data) {
  * Quit Zotero/Firefox
  */
 function exit() {
+	// Create index of output directory
+	if(outputDir && outputDir.exists()) {
+		var index = [];
+		var directoryEntries = outputDir.directoryEntries;
+		while(directoryEntries.hasMoreElements()) {
+			var filename = directoryEntries.getNext().leafName;
+			if(/\.json$/.test(filename) && filename !== "index.json") {
+				index.push(filename);
+			}
+		}
+		
+		var indexFile = outputDir.clone();
+		indexFile.append("index.json");
+		Zotero.File.putContents(indexFile, JSON.stringify(index, null, "\t"));
+	}
+	
+	// Quit
 	Components.classes['@mozilla.org/toolkit/app-startup;1']
 		.getService(Components.interfaces.nsIAppStartup)
 		.quit(Components.interfaces.nsIAppStartup.eAttemptQuit);
