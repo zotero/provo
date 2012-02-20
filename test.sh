@@ -42,13 +42,13 @@ function runProvo {
 	# Run
 	if [ $MAC_NATIVE == 1 ]; then
 		"$APP_DIRECTORY/Contents/MacOS/zotero" -profile "$TEMP_PROFILE_DIRECTORY" \
-		-provooutputdir "$SCRIPT_DIRECTORY" -provobrowsers "g" -provosuffix "$SUFFIX" -jsconsole
+		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "g" -provosuffix "$SUFFIX" -jsconsole
 	elif [ $WIN_NATIVE == 1 ]; then
 		"$APP_DIRECTORY/zotero.exe" -profile "`cygpath -w \"$TEMP_PROFILE_DIRECTORY\"`" \
-		-provooutputdir "`cygpath -w \"$SCRIPT_DIRECTORY\"`" -provobrowsers "g" -provosuffix "$SUFFIX"
+		-provooutputdir "`cygpath -w \"$OUTPUT_DIRECTORY\"`" -provobrowsers "g" -provosuffix "$SUFFIX"
 	else
 		"$APP_DIRECTORY/zotero" -profile "$TEMP_PROFILE_DIRECTORY" \
-		-provooutputdir "$SCRIPT_DIRECTORY" -provobrowsers "g" -provosuffix "$SUFFIX"
+		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "g" -provosuffix "$SUFFIX"
 	fi
 }
 
@@ -57,8 +57,11 @@ function testRelease {
 	RELEASE_DIRECTORY="$1"
 	SUFFIX="$2"
 	
-	rm -rf "$RELEASE_DIRECTORY/translators.zip" "$RELEASE_DIRECTORY/translators.index"
-	cp -r "$TRANSLATORS_DIRECTORY" "$RELEASE_DIRECTORY/translators"
+	rm -rf "$RELEASE_DIRECTORY/translators.zip" \
+		"$RELEASE_DIRECTORY/translators.index" \
+		"$RELEASE_DIRECTORY/translators"
+	mkdir "$RELEASE_DIRECTORY/translators"
+	cp -r "$TRANSLATORS_DIRECTORY/"*.js "$RELEASE_DIRECTORY/translators"
 	runProvo "$RELEASE_DIRECTORY" "$SUFFIX"
 }
 
@@ -90,6 +93,9 @@ if [ ! -d "$ZSA_DIRECTORY" ]; then
 	./fetch_xulrunner.sh -p "$PLATFORMS"
 	popd
 fi
+
+# Make output directory
+mkdir -p "$OUTPUT_DIRECTORY"
 
 # Update translators
 pushd "$TRANSLATORS_DIRECTORY"
