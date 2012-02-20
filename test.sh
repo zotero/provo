@@ -72,7 +72,7 @@ function testBranch {
 	pushd "$ZOTERO_DIRECTORY"
 	git checkout "$BRANCH"
 	git pull
-	SUFFIX="$BRANCH.`git log -n 1 --pretty='format:%h'`"
+	SUFFIX="$BRANCH.SOURCE.`git log -n 1 --pretty='format:%h'`"
 	popd
 	
 	# Build from directory
