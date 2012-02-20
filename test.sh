@@ -107,3 +107,8 @@ testBranch 3.0
 
 # Clean up
 rm -rf "$TEMP_PROFILE_DIRECTORY"
+
+# Run postrun.sh if it exists
+if [ -e "$SCRIPT_DIRECTORY/postrun.sh" ]
+	"$SCRIPT_DIRECTORY/postrun.sh"
+fi
