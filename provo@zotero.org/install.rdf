@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+     xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+	<Description about="urn:mozilla:install-manifest">
+		<em:id>provo@zotero.org</em:id>
+		<em:name>Provo</em:name>
+		<em:version>1.0</em:version>
+		<em:creator>Center for Digital Scholarship</em:creator>
+		<em:developer>Simon Kornblith</em:developer>
+		<em:homepageURL>http://www.zotero.org</em:homepageURL>
+		<em:description>Zotero translator unit test automation</em:description>
+		<em:type>2</em:type>
+		
+		<em:targetApplication>
+			<Description>
+			<em:id>zotero@chnm.gmu.edu</em:id>
+			<em:minVersion>3.0</em:minVersion>
+			<em:maxVersion>3.*</em:maxVersion>
+			</Description>
+		</em:targetApplication>
+	</Description>
+</RDF>
