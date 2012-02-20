@@ -121,7 +121,7 @@ ProvoSave.prototype = {
  */
 function writeData(data) {
 	var outfile = outputDir.clone();
-	outfile.append("provo-"+data.browser+(suffix ? "-"+suffix : "")+".json");
+	outfile.append("testResults-"+data.browser+(suffix ? "-"+suffix : "")+".json");
 	delete _waitingForBrowsers[data.browser];
 	Zotero.File.putContents(outfile, JSON.stringify(data, null, "\t"));
 	if(Zotero.Utilities.isEmpty(_waitingForBrowsers)) Zotero.setTimeout(exit, 0);
