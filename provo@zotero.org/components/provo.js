@@ -78,22 +78,26 @@ Provo.prototype = {
 					if(browser.contentDocument.location.href == "about:blank") return;
 					Zotero.debug(browser.contentDocument.location.href+" has been loaded");
 					
+					var done = 0;
+					var checkIfDone = function() {
+						done++;
+						if(done === 3) {
+							var data = win.serializeToJSON();
+							writeData(data);
+							Zotero.Browser.deleteHiddenBrowser(browser);
+						}
+					};
+					
 					var doc = browser.contentDocument;
 					var win = browser.contentWindow;
 					doc.addEventListener("ZoteroHaveTranslators-web", function() {
-						var done = 0;
-						var checkIfDone = function() {
-							done++;
-							if(done === 3) {
-								var data = win.serializeToJSON();
-								writeData(data);
-							}
-						};
-						
-						win.runTranslatorTests("import", checkIfDone);
-						win.runTranslatorTests("search", checkIfDone);
 						win.runTranslatorTests("web", checkIfDone);
-						Zotero.Browser.deleteHiddenBrowser(browser);
+					}, false);
+					doc.addEventListener("ZoteroHaveTranslators-import", function() {
+						win.runTranslatorTests("import", checkIfDone);
+					}, false);
+					doc.addEventListener("ZoteroHaveTranslators-search", function() {
+						win.runTranslatorTests("search", checkIfDone);
 					}, false);
 				}, false);
 				browser.loadURI("chrome://zotero/content/tools/testTranslators/testTranslators.html");
