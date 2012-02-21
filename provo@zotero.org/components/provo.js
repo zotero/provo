@@ -81,10 +81,18 @@ Provo.prototype = {
 					var doc = browser.contentDocument;
 					var win = browser.contentWindow;
 					doc.addEventListener("ZoteroHaveTranslators-web", function() {
-						win.runTranslatorTests("web", function() {
-							var data = win.serializeToJSON();
-							writeData(data);
-						});
+						var done = 0;
+						var checkIfDone = function() {
+							done++;
+							if(done === 3) {
+								var data = win.serializeToJSON();
+								writeData(data);
+							}
+						};
+						
+						win.runTranslatorTests("import", checkIfDone);
+						win.runTranslatorTests("search", checkIfDone);
+						win.runTranslatorTests("web", checkIfDone);
 						Zotero.Browser.deleteHiddenBrowser(browser);
 					}, false);
 				}, false);
