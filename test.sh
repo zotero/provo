@@ -109,6 +109,6 @@ testBranch 3.0
 rm -rf "$TEMP_PROFILE_DIRECTORY"
 
 # Run postrun.sh if it exists
-if [ -e "$SCRIPT_DIRECTORY/postrun.sh" ]
+if [ -e "$SCRIPT_DIRECTORY/postrun.sh" ]; then
 	"$SCRIPT_DIRECTORY/postrun.sh"
 fi
