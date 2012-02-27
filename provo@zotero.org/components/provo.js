@@ -26,6 +26,7 @@
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/FileUtils.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("chrome://zotero/content/tools/testTranslators/translatorTester.js");
 
 var Zotero, translatorsDir, outputDir, suffix, _waitingForBrowsers = {};
 
@@ -73,34 +74,7 @@ Provo.prototype = {
 		// Allow 60 seconds for startup to complete and then start running translator tester
 		if(_waitingForBrowsers["g"]) {
 			Zotero.setTimeout(function() {
-				var browser = Zotero.Browser.createHiddenBrowser();
-				browser.addEventListener("DOMContentLoaded", function() {
-					if(browser.contentDocument.location.href == "about:blank") return;
-					Zotero.debug(browser.contentDocument.location.href+" has been loaded");
-					
-					var done = 0;
-					var checkIfDone = function() {
-						done++;
-						if(done === 3) {
-							var data = win.serializeToJSON();
-							writeData(data);
-							Zotero.Browser.deleteHiddenBrowser(browser);
-						}
-					};
-					
-					var doc = browser.contentDocument;
-					var win = browser.contentWindow;
-					doc.addEventListener("ZoteroHaveTranslators-web", function() {
-						win.runTranslatorTests("web", checkIfDone);
-					}, false);
-					doc.addEventListener("ZoteroHaveTranslators-import", function() {
-						win.runTranslatorTests("import", checkIfDone);
-					}, false);
-					doc.addEventListener("ZoteroHaveTranslators-search", function() {
-						win.runTranslatorTests("search", checkIfDone);
-					}, false);
-				}, false);
-				browser.loadURI("chrome://zotero/content/tools/testTranslators/testTranslators.html");
+				Zotero_TranslatorTesters.runAllTests(6, {}, writeData);
 			}, 60000);
 		}
 	},
