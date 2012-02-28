@@ -63,13 +63,13 @@ function runProvo {
 	# Run
 	if [ $MAC_NATIVE == 1 ]; then
 		"$APP_DIRECTORY/Contents/MacOS/zotero" -profile "$FIREFOX_PROFILE_DIRECTORY" \
-		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "gc" -provosuffix "$SUFFIX" &
+		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "g,c" -provosuffix "$SUFFIX" &
 	elif [ $WIN_NATIVE == 1 ]; then
 		"$APP_DIRECTORY/zotero.exe" -profile "`cygpath -w \"$FIREFOX_PROFILE_DIRECTORY\"`" \
-		-provooutputdir "`cygpath -w \"$OUTPUT_DIRECTORY\"`" -provobrowsers "gc" -provosuffix "$SUFFIX" &
+		-provooutputdir "`cygpath -w \"$OUTPUT_DIRECTORY\"`" -provobrowsers "g,c" -provosuffix "$SUFFIX" &
 	else
 		"$APP_DIRECTORY/zotero" -profile "$FIREFOX_PROFILE_DIRECTORY" \
-		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "gc" -provosuffix "$SUFFIX" &
+		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "g,c" -provosuffix "$SUFFIX" &
 	fi
 	ZOTERO_PID=$!
 	
@@ -77,16 +77,16 @@ function runProvo {
 	
 	if [ $MAC_NATIVE == 1 ]; then
 		"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-		--profile-directory="$CHROME_PROFILE_DIRECTORY" \
+		--user-data-dir="$CHROME_PROFILE_DIRECTORY" \
 		--load-extension="$CONNECTOR_DIRECTORY/chrome" \
 		--new-window "http://127.0.0.1:23119/provo/run" &
 	elif [ $WIN_NATIVE == 1 ]; then
 		"`cygpath \"$LOCALAPPDATA\"`"/Google/Chrome/Application/chrome \
-		--profile-directory="`cygpath -w \"$CHROME_PROFILE_DIRECTORY\"`" \
+		--user-data-dir="`cygpath -w \"$CHROME_PROFILE_DIRECTORY\"`" \
 		--load-extension="`cygpath -w \"$CONNECTOR_DIRECTORY/chrome\"`" \
 		--new-window "http://127.0.0.1:23119/provo/run" &
 	else
-		chromium --profile-directory="$CHROME_PROFILE_DIRECTORY" \
+		chromium --user-data-dir="$CHROME_PROFILE_DIRECTORY" \
 		--load-extension="$CONNECTOR_DIRECTORY/chrome" \
 		--new-window "http://127.0.0.1:23119/provo/run" &
 	fi
