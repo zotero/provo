@@ -73,7 +73,7 @@ function runProvo {
 	fi
 	ZOTERO_PID=$!
 	
-	sleep 60
+	sleep 1800
 	
 	if [ $MAC_NATIVE == 1 ]; then
 		"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
