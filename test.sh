@@ -21,7 +21,6 @@
 SCRIPT_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . "$SCRIPT_DIRECTORY/config.sh"
 TRANSLATORS_DIRECTORY="$ZSA_DIRECTORY/modules/zotero/translators"
-ZOTERO_DIRECTORY="$ZSA_DIRECTORY/modules/zotero"
 
 [ "`uname`" != "Darwin" ]
 MAC_NATIVE=$?
@@ -49,26 +48,52 @@ fi
 # Start provo
 function runProvo {
 	APP_DIRECTORY="$1"
-	SUFFIX="$2"
+	CONNECTOR_DIRECTORY="$2"
+	SUFFIX="$3"
 	
 	# Make profile
+	FIREFOX_PROFILE_DIRECTORY="$TEMP_PROFILE_DIRECTORY/firefox"
+	CHROME_PROFILE_DIRECTORY="$TEMP_PROFILE_DIRECTORY/chrome"
 	rm -rf "$TEMP_PROFILE_DIRECTORY"
-	mkdir -p "$TEMP_PROFILE_DIRECTORY/extensions"
-	mkdir "$TEMP_PROFILE_DIRECTORY/zotero"
-	cp "$SCRIPT_DIRECTORY/prefs.js" "$TEMP_PROFILE_DIRECTORY"
-	cp -r "$SCRIPT_DIRECTORY/provo@zotero.org" "$TEMP_PROFILE_DIRECTORY/extensions"
+	mkdir -p "$FIREFOX_PROFILE_DIRECTORY/extensions"
+	mkdir "$FIREFOX_PROFILE_DIRECTORY/zotero"
+	cp "$SCRIPT_DIRECTORY/prefs.js" "$FIREFOX_PROFILE_DIRECTORY"
+	cp -r "$SCRIPT_DIRECTORY/provo@zotero.org" "$FIREFOX_PROFILE_DIRECTORY/extensions"
 	
 	# Run
 	if [ $MAC_NATIVE == 1 ]; then
-		"$APP_DIRECTORY/Contents/MacOS/zotero" -profile "$TEMP_PROFILE_DIRECTORY" \
-		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "g" -provosuffix "$SUFFIX" -jsconsole
+		"$APP_DIRECTORY/Contents/MacOS/zotero" -profile "$FIREFOX_PROFILE_DIRECTORY" \
+		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "gc" -provosuffix "$SUFFIX" &
 	elif [ $WIN_NATIVE == 1 ]; then
-		"$APP_DIRECTORY/zotero.exe" -profile "`cygpath -w \"$TEMP_PROFILE_DIRECTORY\"`" \
-		-provooutputdir "`cygpath -w \"$OUTPUT_DIRECTORY\"`" -provobrowsers "g" -provosuffix "$SUFFIX"
+		"$APP_DIRECTORY/zotero.exe" -profile "`cygpath -w \"$FIREFOX_PROFILE_DIRECTORY\"`" \
+		-provooutputdir "`cygpath -w \"$OUTPUT_DIRECTORY\"`" -provobrowsers "gc" -provosuffix "$SUFFIX" &
 	else
-		"$APP_DIRECTORY/zotero" -profile "$TEMP_PROFILE_DIRECTORY" \
-		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "g" -provosuffix "$SUFFIX"
+		"$APP_DIRECTORY/zotero" -profile "$FIREFOX_PROFILE_DIRECTORY" \
+		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "gc" -provosuffix "$SUFFIX" &
 	fi
+	ZOTERO_PID=$!
+	
+	sleep 60
+	
+	if [ $MAC_NATIVE == 1 ]; then
+		"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+		--profile-directory="$CHROME_PROFILE_DIRECTORY" \
+		--load-extension="$CONNECTOR_DIRECTORY/chrome" \
+		--new-window "http://127.0.0.1:23119/provo/run" &
+	elif [ $WIN_NATIVE == 1 ]; then
+		"`cygpath \"$LOCALAPPDATA\"`"/Google/Chrome/Application/chrome \
+		--profile-directory="`cygpath -w \"$CHROME_PROFILE_DIRECTORY\"`" \
+		--load-extension="`cygpath -w \"$CONNECTOR_DIRECTORY/chrome\"`" \
+		--new-window "http://127.0.0.1:23119/provo/run" &
+	else
+		chromium --profile-directory="$CHROME_PROFILE_DIRECTORY" \
+		--load-extension="$CONNECTOR_DIRECTORY/chrome" \
+		--new-window "http://127.0.0.1:23119/provo/run" &
+	fi
+	CHROME_PID=$!
+	
+	wait $ZOTERO_PID
+	kill $CHROME_PID
 }
 
 # Test an unpacked release
@@ -81,36 +106,60 @@ function testRelease {
 		"$RELEASE_DIRECTORY/translators"
 	mkdir "$RELEASE_DIRECTORY/translators"
 	cp -r "$TRANSLATORS_DIRECTORY/"*.js "$RELEASE_DIRECTORY/translators"
-	runProvo "$RELEASE_DIRECTORY" "$SUFFIX"
+	runProvo "$RELEASE_DIRECTORY" "$ZC_DIRECTORY" "$SUFFIX"
 }
 
 # Test a branch from git
 function testBranch {
 	BRANCH="$1"
 	
-	pushd "$ZOTERO_DIRECTORY"
+	ZSA_ZOTERO_DIRECTORY="$ZSA_DIRECTORY/modules/zotero"
+	ZC_ZOTERO_DIRECTORY="$ZC_DIRECTORY/modules/zotero"
+	
+	pushd "$ZSA_ZOTERO_DIRECTORY"
 	git checkout "$BRANCH"
 	git pull
 	SUFFIX="$BRANCH.SOURCE.`git log -n 1 --pretty='format:%h'`"
 	popd
 	
-	# Build from directory
+	pushd "$ZC_ZOTERO_DIRECTORY"
+	git checkout "$BRANCH"
+	git pull
+	popd
+	
+	# Build connectors
+	pushd "$ZC_DIRECTORY"
+	git reset --hard
+	git pull
+	./build.sh debug
+	popd
+	
+	# Build Zotero Standalone
 	pushd "$ZSA_DIRECTORY"
-	./build.sh -s "$ZOTERO_DIRECTORY" -p "$PLATFORMS"
-	runProvo "$ZSA_STAGE_DIRECTORY" "$SUFFIX"
+	./build.sh -s "$ZSA_ZOTERO_DIRECTORY" -p "$PLATFORMS"
+	runProvo "$ZSA_STAGE_DIRECTORY" "$ZC_DIRECTORY" "$SUFFIX"
 	popd
 }
 
 # Make sure zotero-standalone-build directory exists, or else clone it
 if [ ! -d "$ZSA_DIRECTORY" ]; then
 	if [ -e "$ZSA_DIRECTORY" ]; then
-		echo "Specified zotero-standalone-build exists but is not a directory. Exiting." 1>&2
+		echo "Specified ZSA_DIRECTORY exists but is not a directory. Exiting." 1>&2
 		exit 1
 	fi
 	git clone --recursive "$ZSA_REPOSITORY" "$ZSA_DIRECTORY"
 	pushd "$ZSA_DIRECTORY"
 	./fetch_xulrunner.sh -p "$PLATFORMS"
 	popd
+fi
+
+# Make sure zotero-connectors directory exists, or else clone it
+if [ ! -d "$ZC_DIRECTORY" ]; then
+	if [ -e "$ZC_DIRECTORY" ]; then
+		echo "Specified ZC_DIRECTORY directory exists but is not a directory. Exiting." 1>&2
+		exit 1
+	fi
+	git clone --recursive "$ZC_REPOSITORY" "$ZC_DIRECTORY"
 fi
 
 # Make output directory

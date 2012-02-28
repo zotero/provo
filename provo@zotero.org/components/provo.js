@@ -68,7 +68,8 @@ Provo.prototype = {
 		suffix = cmdLine.handleFlagWithParam("provosuffix", false);
 		if(!suffix) suffix = "";
 		
-		// Add endpoint
+		// Add endpoints
+		Zotero.Server.Endpoints["/provo/run"] = ProvoRun;
 		Zotero.Server.Endpoints["/provo/save"] = ProvoSave;
 		
 		// Allow 60 seconds for startup to complete and then start running translator tester
@@ -86,6 +87,18 @@ Provo.prototype = {
 	_xpcom_categories: [{category:"command-line-handler", entry:"m-provo"}],
 	QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsICommandLineHandler,
 	                                       Components.interfaces.nsISupports])
+};
+
+/**
+ * Trigger translator tests
+ */
+var ProvoRun = function() {};
+ProvoRun.prototype = {
+	"supportedMethods":["GET"],
+	
+	"init":function(data, sendResponseCallback) {
+		sendResponseCallback(200, "text/plain", "fnord");
+	}
 };
 
 /**
