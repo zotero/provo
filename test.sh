@@ -73,8 +73,13 @@ function runProvo {
 	fi
 	ZOTERO_PID=$!
 	
-	sleep 1800
+	# Wait until Fx output is written to a file
+	LS_OUTPUT="`ls -lad \"$OUTPUT_DIRECTORY\"`"
+	while [ "`ls -lad \"$OUTPUT_DIRECTORY\"`" == "$LS_OUTPUT" ]; do
+		sleep 10
+	done
 	
+	# Launch Chrome to run tests
 	if [ $MAC_NATIVE == 1 ]; then
 		"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
 		--user-data-dir="$CHROME_PROFILE_DIRECTORY" \
