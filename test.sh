@@ -106,9 +106,10 @@ function runProvo {
 	
 	# Install Safari extension
 	if [ $MAC_NATIVE == 1 -o $WIN_NATIVE == 1 ]; then
-		rm -rf "$SAFARI_EXTENSION_DIRECTORY"
-		cp -r "$CONNECTOR_DIRECTORY/safari/Zotero Connector for Safari.safariextension" \
-			"$SAFARI_EXTENSION_DIRECTORY"
+		# Clear cache
+		rm -rf "$SAFARI_CACHE_DIRECTORY"
+		# Update extension
+		cp -r "$CONNECTOR_DIRECTORY/Zotero_Connector.safariextz" "$SAFARI_EXTENSION_LOCATION"
 		# Launch Safari to run tests
 		if [ $MAC_NATIVE == 1 ]; then
 			"/Applications/Safari.app/Contents/MacOS/Safari" &
