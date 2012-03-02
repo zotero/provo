@@ -14,4 +14,4 @@ if [ "`uname`" != "Darwin" ]; then
 	SAFARI_EXTENSION_DIRECTORY="$HOME/Library/Caches/com.apple.Safari/Extensions/Zotero Connector for Safari.safariextension"
 elif [ "`uname -o 2> /dev/null`" == "Cygwin" ]; then
 	SAFARI_EXTENSION_DIRECTORY="`cygpath -u \"$LOCALAPPDATA\"`/Apple Computer/Safari/Extensions/Zotero Connector for Safari.safariextension"
-end
+fi

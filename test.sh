@@ -114,7 +114,7 @@ function runProvo {
 			"/Applications/Safari.app/Contents/MacOS/Safari" &
 		elif [ $WIN_NATIVE == 1 ]; then
 			"/cygdrive/c/Program Files/Safari/Safari.exe" &
-		end
+		fi
 		SAFARI_PID=$!
 	fi
 	
