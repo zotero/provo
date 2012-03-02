@@ -63,10 +63,10 @@ function runProvo {
 	# Run
 	if [ $MAC_NATIVE == 1 ]; then
 		"$APP_DIRECTORY/Contents/MacOS/zotero" -profile "$FIREFOX_PROFILE_DIRECTORY" \
-		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "g,c" -provosuffix "$SUFFIX" &
+		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "g,c,s" -provosuffix "$SUFFIX" &
 	elif [ $WIN_NATIVE == 1 ]; then
 		"$APP_DIRECTORY/zotero.exe" -profile "`cygpath -w \"$FIREFOX_PROFILE_DIRECTORY\"`" \
-		-provooutputdir "`cygpath -w \"$OUTPUT_DIRECTORY\"`" -provobrowsers "g,c" -provosuffix "$SUFFIX" &
+		-provooutputdir "`cygpath -w \"$OUTPUT_DIRECTORY\"`" -provobrowsers "g,c,s" -provosuffix "$SUFFIX" &
 	else
 		"$APP_DIRECTORY/zotero" -profile "$FIREFOX_PROFILE_DIRECTORY" \
 		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "g,c" -provosuffix "$SUFFIX" &
@@ -97,8 +97,31 @@ function runProvo {
 	fi
 	CHROME_PID=$!
 	
-	wait $ZOTERO_PID
+	# Wait until Chrome output is written to a file
+	LS_OUTPUT="`ls -lad \"$OUTPUT_DIRECTORY\"`"
+	while [ "`ls -lad \"$OUTPUT_DIRECTORY\"`" == "$LS_OUTPUT" ]; do
+		sleep 10
+	done
 	kill $CHROME_PID
+	
+	# Install Safari extension
+	if [ $MAC_NATIVE == 1 -o $WIN_NATIVE == 1 ]; then
+		rm -rf "$SAFARI_EXTENSION_DIRECTORY"
+		cp -r "$CONNECTOR_DIRECTORY/safari/Zotero Connector for Safari.safariextension" \
+			"$SAFARI_EXTENSION_DIRECTORY"
+		# Launch Safari to run tests
+		if [ $MAC_NATIVE == 1 ]; then
+			"/Applications/Safari.app/Contents/MacOS/Safari" &
+		elif [ $WIN_NATIVE == 1 ]; then
+			"/cygdrive/c/Program Files/Safari/Safari.exe" &
+		end
+		SAFARI_PID=$!
+	fi
+	
+	wait $ZOTERO_PID
+	if [ $MAC_NATIVE == 1 -o $WIN_NATIVE == 1 ]; then
+		kill $SAFARI_PID
+	fi
 }
 
 # Test an unpacked release
