@@ -45,6 +45,35 @@ if [ -z "$TEMP_PROFILE_DIRECTORY" ]; then
 	exit 1
 fi
 
+# Make bookmarklet config
+function testBookmarklet {
+	CONNECTOR_DIRECTORY="$1"
+	BROWSER="$2"
+	VERSION="$3"
+	
+	configFile="$TEMP_PROFILE_DIRECTORY/bookmarklet_config.json"
+	outputFile="$OUTPUT_DIRECTORY/testResults-${BROWSER}b-$VERSION.json"
+	translatorsDirectory="$CONNECTOR_DIRECTORY/bookmarklet/tests/config.json"
+	testPayload="$CONNECTOR_DIRECTORY/bookmarklet/tests/inject_test.js"
+	if [ $WIN_NATIVE == 1]; then
+		translatorsDirectory="`cygpath -w \"$translatorsDirectory\" | sed 's/\\\\/\\\\\\\\/g'`"
+		testPayload="`cygpath -w \"$testPayload\" | sed 's/\\\\/\\\\\\\\/g'`"
+	end
+	
+	cat > "$configFile" <<DONE
+{
+	"translatorsDirectory":"$translatorsDirectory",
+	"testPayload":"$testPayload",
+	"concurrentTests":4,
+	"browser":"$BROWSER",
+	"version":"$VERSION",
+	"exclude":[]
+}
+DONE
+	java -jar "$CONNECTOR_DIRECTORY/bookmarklet/tests/test.jar" "`cygpath -w \"$configFIle\" \
+		"`cygpath -w \"$outputFile\"
+}
+
 # Start provo
 function runProvo {
 	APP_DIRECTORY="$1"
@@ -60,16 +89,16 @@ function runProvo {
 	cp "$SCRIPT_DIRECTORY/prefs.js" "$FIREFOX_PROFILE_DIRECTORY"
 	cp -r "$SCRIPT_DIRECTORY/provo@zotero.org" "$FIREFOX_PROFILE_DIRECTORY/extensions"
 	
-	# Run
+	# Test Firefox
 	if [ $MAC_NATIVE == 1 ]; then
 		"$APP_DIRECTORY/Contents/MacOS/zotero" -profile "$FIREFOX_PROFILE_DIRECTORY" \
-		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "g,c,s" -provosuffix "$SUFFIX" &
+		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "g,c,s,gb" -provosuffix "$SUFFIX" &
 	elif [ $WIN_NATIVE == 1 ]; then
 		"$APP_DIRECTORY/zotero.exe" -profile "`cygpath -w \"$FIREFOX_PROFILE_DIRECTORY\"`" \
-		-provooutputdir "`cygpath -w \"$OUTPUT_DIRECTORY\"`" -provobrowsers "g,c,s" -provosuffix "$SUFFIX" &
+		-provooutputdir "`cygpath -w \"$OUTPUT_DIRECTORY\"`" -provobrowsers "g,c,s,gb" -provosuffix "$SUFFIX" &
 	else
 		"$APP_DIRECTORY/zotero" -profile "$FIREFOX_PROFILE_DIRECTORY" \
-		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "g,c" -provosuffix "$SUFFIX" &
+		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "g,c,gb" -provosuffix "$SUFFIX" &
 	fi
 	ZOTERO_PID=$!
 	
@@ -79,7 +108,10 @@ function runProvo {
 		sleep 10
 	done
 	
-	# Launch Chrome to run tests
+	# Test bookmarklets
+	testBookmarklet "$CONNECTOR_DIRECTORY" "g" "$SUFFIX"
+	
+	# Test Chrome
 	if [ $MAC_NATIVE == 1 ]; then
 		"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
 		--user-data-dir="$CHROME_PROFILE_DIRECTORY" \
@@ -104,7 +136,7 @@ function runProvo {
 	done
 	kill $CHROME_PID
 	
-	# Install Safari extension
+	# Test Safari
 	if [ $MAC_NATIVE == 1 -o $WIN_NATIVE == 1 ]; then
 		# Clear cache
 		rm -rf "$SAFARI_CACHE_DIRECTORY"
@@ -161,6 +193,11 @@ function testBranch {
 	git reset --hard
 	git pull
 	./build.sh debug
+	popd
+	
+	# Build bookmarklet tester
+	pushd "$ZC_DIRECTORY/bookmarklet/tests"
+	ant
 	popd
 	
 	# Build Zotero Standalone
