@@ -58,7 +58,7 @@ function testBookmarklet {
 	if [ $WIN_NATIVE == 1]; then
 		translatorsDirectory="`cygpath -w \"$translatorsDirectory\" | sed 's/\\\\/\\\\\\\\/g'`"
 		testPayload="`cygpath -w \"$testPayload\" | sed 's/\\\\/\\\\\\\\/g'`"
-	end
+	fi
 	
 	cat > "$configFile" <<DONE
 {
