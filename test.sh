@@ -53,7 +53,7 @@ function testBookmarklet {
 	
 	configFile="$TEMP_PROFILE_DIRECTORY/bookmarklet_config.json"
 	outputFile="$OUTPUT_DIRECTORY/testResults-${BROWSER}b-$VERSION.json"
-	translatorsDirectory="$CONNECTOR_DIRECTORY/bookmarklet/tests/config.json"
+	translatorsDirectory="$TRANSLATORS_DIRECTORY"
 	testPayload="$CONNECTOR_DIRECTORY/bookmarklet/tests/inject_test.js"
 	jarFile="$CONNECTOR_DIRECTORY/bookmarklet/tests/test.jar"
 	if [ $WIN_NATIVE == 1 ]; then
@@ -112,7 +112,7 @@ function runProvo {
 	done
 	
 	# Test bookmarklets
-	testBookmarklet "$CONNECTOR_DIRECTORY" "g" "$SUFFIX"
+	#testBookmarklet "$CONNECTOR_DIRECTORY" "g" "$SUFFIX"
 	
 	# Test Chrome
 	if [ $MAC_NATIVE == 1 ]; then
