@@ -70,8 +70,8 @@ function testBookmarklet {
 	"exclude":[]
 }
 DONE
-	java -jar "$CONNECTOR_DIRECTORY/bookmarklet/tests/test.jar" "`cygpath -w \"$configFIle\" \
-		"`cygpath -w \"$outputFile\"
+	java -jar "$CONNECTOR_DIRECTORY/bookmarklet/tests/test.jar" "`cygpath -w \"$configFile\"`" \
+		"`cygpath -w \"$outputFile\"`"
 }
 
 # Start provo
