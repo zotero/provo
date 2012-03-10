@@ -55,9 +55,13 @@ function testBookmarklet {
 	outputFile="$OUTPUT_DIRECTORY/testResults-${BROWSER}b-$VERSION.json"
 	translatorsDirectory="$CONNECTOR_DIRECTORY/bookmarklet/tests/config.json"
 	testPayload="$CONNECTOR_DIRECTORY/bookmarklet/tests/inject_test.js"
-	if [ $WIN_NATIVE == 1]; then
+	jarFile="$CONNECTOR_DIRECTORY/bookmarklet/tests/test.jar"
+	if [ $WIN_NATIVE == 1 ]; then
 		translatorsDirectory="`cygpath -w \"$translatorsDirectory\" | sed 's/\\\\/\\\\\\\\/g'`"
 		testPayload="`cygpath -w \"$testPayload\" | sed 's/\\\\/\\\\\\\\/g'`"
+		configFile="`cygpath -w \"$configFile\"`"
+		outputFile="`cygpath -w \"$outputFile\"`"
+		jarFile="`cygpath -w \"$jarFile\"`"
 	fi
 	
 	cat > "$configFile" <<DONE
@@ -70,8 +74,7 @@ function testBookmarklet {
 	"exclude":[]
 }
 DONE
-	java -jar "$CONNECTOR_DIRECTORY/bookmarklet/tests/test.jar" "`cygpath -w \"$configFile\"`" \
-		"`cygpath -w \"$outputFile\"`"
+	java -jar "$jarFile" "$configFile" "$outputFile"
 }
 
 # Start provo
@@ -92,13 +95,13 @@ function runProvo {
 	# Test Firefox
 	if [ $MAC_NATIVE == 1 ]; then
 		"$APP_DIRECTORY/Contents/MacOS/zotero" -profile "$FIREFOX_PROFILE_DIRECTORY" \
-		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "g,c,s,gb" -provosuffix "$SUFFIX" &
+		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "g,c,s" -provosuffix "$SUFFIX" &
 	elif [ $WIN_NATIVE == 1 ]; then
 		"$APP_DIRECTORY/zotero.exe" -profile "`cygpath -w \"$FIREFOX_PROFILE_DIRECTORY\"`" \
-		-provooutputdir "`cygpath -w \"$OUTPUT_DIRECTORY\"`" -provobrowsers "g,c,s,gb" -provosuffix "$SUFFIX" &
+		-provooutputdir "`cygpath -w \"$OUTPUT_DIRECTORY\"`" -provobrowsers "g,c,s" -provosuffix "$SUFFIX" &
 	else
 		"$APP_DIRECTORY/zotero" -profile "$FIREFOX_PROFILE_DIRECTORY" \
-		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "g,c,gb" -provosuffix "$SUFFIX" &
+		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "g,c" -provosuffix "$SUFFIX" &
 	fi
 	ZOTERO_PID=$!
 	
