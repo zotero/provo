@@ -112,7 +112,7 @@ function runProvo {
 	done
 	
 	# Test bookmarklets
-	#testBookmarklet "$CONNECTOR_DIRECTORY" "g" "$SUFFIX"
+	testBookmarklet "$CONNECTOR_DIRECTORY" "g" "$SUFFIX"
 	
 	# Test Chrome
 	if [ $MAC_NATIVE == 1 ]; then
