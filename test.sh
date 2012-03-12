@@ -68,7 +68,7 @@ function testBookmarklet {
 {
 	"translatorsDirectory":"$translatorsDirectory",
 	"testPayload":"$testPayload",
-	"concurrentTests":4,
+	"concurrentTests":6,
 	"browser":"$BROWSER",
 	"version":"$VERSION",
 	"exclude":[]
