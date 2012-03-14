@@ -54,14 +54,16 @@ function testBookmarklet {
 	configFile="$TEMP_PROFILE_DIRECTORY/bookmarklet_config.json"
 	outputFile="$OUTPUT_DIRECTORY/testResults-${BROWSER}b-$VERSION.json"
 	translatorsDirectory="$TRANSLATORS_DIRECTORY"
-	testPayload="$CONNECTOR_DIRECTORY/bookmarklet/tests/inject_test.js"
-	jarFile="$CONNECTOR_DIRECTORY/bookmarklet/tests/test.jar"
+	if [ $BROWSER == "i" ]; then
+		testPayload="$CONNECTOR_DIRECTORY/bookmarklet/tests/inject_ie_test.js"
+	else
+		testPayload="$CONNECTOR_DIRECTORY/bookmarklet/tests/inject_test.js"
+	end
 	if [ $WIN_NATIVE == 1 ]; then
 		translatorsDirectory="`cygpath -w \"$translatorsDirectory\" | sed 's/\\\\/\\\\\\\\/g'`"
 		testPayload="`cygpath -w \"$testPayload\" | sed 's/\\\\/\\\\\\\\/g'`"
 		configFile="`cygpath -w \"$configFile\"`"
 		outputFile="`cygpath -w \"$outputFile\"`"
-		jarFile="`cygpath -w \"$jarFile\"`"
 	fi
 	
 	cat > "$configFile" <<DONE
@@ -74,7 +76,9 @@ function testBookmarklet {
 	"exclude":[]
 }
 DONE
-	java -jar "$jarFile" "$configFile" "$outputFile"
+	pushd "$CONNECTOR_DIRECTORY/bookmarklet/tests"
+	java -jar test.jar "$configFile" "$outputFile"
+	popd
 }
 
 # Start provo
