@@ -70,7 +70,7 @@ function testBookmarklet {
 {
 	"translatorsDirectory":"$translatorsDirectory",
 	"testPayload":"$testPayload",
-	"concurrentTests":4,
+	"concurrentTests":3,
 	"browser":"$BROWSER",
 	"version":"$VERSION",
 	"exclude":[]
