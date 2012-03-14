@@ -56,8 +56,10 @@ function testBookmarklet {
 	translatorsDirectory="$TRANSLATORS_DIRECTORY"
 	if [ $BROWSER == "i" ]; then
 		testPayload="$CONNECTOR_DIRECTORY/bookmarklet/tests/inject_ie_test.js"
+		nConcurrentTests=1
 	else
 		testPayload="$CONNECTOR_DIRECTORY/bookmarklet/tests/inject_test.js"
+		nConcurrentTests=4
 	end
 	if [ $WIN_NATIVE == 1 ]; then
 		translatorsDirectory="`cygpath -w \"$translatorsDirectory\" | sed 's/\\\\/\\\\\\\\/g'`"
@@ -70,7 +72,7 @@ function testBookmarklet {
 {
 	"translatorsDirectory":"$translatorsDirectory",
 	"testPayload":"$testPayload",
-	"concurrentTests":3,
+	"concurrentTests":$nConcurrentTests,
 	"browser":"$BROWSER",
 	"version":"$VERSION",
 	"exclude":[]
