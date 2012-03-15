@@ -60,7 +60,7 @@ function testBookmarklet {
 	else
 		testPayload="$CONNECTOR_DIRECTORY/bookmarklet/tests/inject_test.js"
 		nConcurrentTests=4
-	end
+	fi
 	if [ $WIN_NATIVE == 1 ]; then
 		translatorsDirectory="`cygpath -w \"$translatorsDirectory\" | sed 's/\\\\/\\\\\\\\/g'`"
 		testPayload="`cygpath -w \"$testPayload\" | sed 's/\\\\/\\\\\\\\/g'`"
