@@ -121,7 +121,7 @@ function runProvo {
 	
 	# Test bookmarklets
 	#testBookmarklet "$CONNECTOR_DIRECTORY" "i" "$SUFFIX"
-	testBookmarklet "$CONNECTOR_DIRECTORY" "c" "$SUFFIX"
+	#testBookmarklet "$CONNECTOR_DIRECTORY" "c" "$SUFFIX"
 	testBookmarklet "$CONNECTOR_DIRECTORY" "g" "$SUFFIX"
 	
 	# Test Chrome
