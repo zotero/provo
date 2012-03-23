@@ -95,7 +95,7 @@ function waitForTestResults {
 
 # Find a free server number by looking at .X*-lock files in /tmp.
 function find_free_servernum {
-    i=$SERVERNUM
+    i=10
     while [ -f /tmp/.X$i-lock ]; do
         i=$(($i + 1))
     done
@@ -284,7 +284,9 @@ if [ $MAC_NATIVE != 1 -a $WIN_NATIVE != 1 -a -z "$DISPLAY" ]; then
 	export DISPLAY=":`find_free_servernum`"
 	Xvfb "$DISPLAY" &
 	XVFB_PID=$!
+	echo "No available display; starting Xvfb on $DISPLAY"
 fi
+
 testBranch 3.0
 
 # Clean up
