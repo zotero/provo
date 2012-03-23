@@ -93,15 +93,6 @@ function waitForTestResults {
 	done
 }
 
-# Find a free server number by looking at .X*-lock files in /tmp.
-function find_free_servernum {
-    i=10
-    while [ -f /tmp/.X$i-lock ]; do
-        i=$(($i + 1))
-    done
-    echo $i
-}
-
 # Start provo
 function runProvo {
 	APP_DIRECTORY="$1"
@@ -281,7 +272,7 @@ popd
 # Test
 XVFB_PID=
 if [ $MAC_NATIVE != 1 -a $WIN_NATIVE != 1 -a -z "$DISPLAY" ]; then
-	export DISPLAY=":`find_free_servernum`"
+	export DISPLAY=":137"
 	Xvfb "$DISPLAY" &
 	XVFB_PID=$!
 	echo "No available display; starting Xvfb on $DISPLAY"
