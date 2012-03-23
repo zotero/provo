@@ -227,7 +227,7 @@ function testBranch {
 	popd
 	
 	# Build bookmarklet tester
-	if [ $TEST_BOOKMARKLET_IE == 1 -o $TEST_BOOKMARKLET_SAFARI == 1 -o $TEST_BOOKMARKLET_GECKO == 1 ]; then
+	if [ $TEST_BOOKMARKLET_IE == 1 -o $TEST_BOOKMARKLET_CHROME == 1 -o $TEST_BOOKMARKLET_GECKO == 1 ]; then
 		pushd "$ZC_DIRECTORY/bookmarklet/tests"
 		ant
 		popd
