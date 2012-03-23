@@ -31,6 +31,6 @@ pushd "$OUTPUT_DIRECTORY"
 	for testResults in testResults*json; do
 		gzip "$testResults"
 		s3cmd put --add-header="Content-Encoding:gzip" "$testResults.gz" \
-			"s3://$S3_PREFIX/$outputDirName/testResults.gz"
+			"s3://$S3_PREFIX/$outputDirName/$testResults"
 	done
 popd
