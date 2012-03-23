@@ -26,7 +26,7 @@ fi
 BUCKET="zotero-translator-tests"
 
 pushd "$OUTPUT_DIRECTORY"
-	outputDirName="`dirname $OUTPUT_DIRECTORY`"
+	outputDirName="`basename $OUTPUT_DIRECTORY`"
 	s3cmd put index.json "s3://$BUCKET/$outputDirName/index.json"
 	for testResults in testResults*json; do
 		gzip "$testResults"
