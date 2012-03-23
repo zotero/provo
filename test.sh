@@ -57,7 +57,7 @@ function testBookmarklet {
 	if [ $BROWSER == "i" ]; then
 		testPayload="$CONNECTOR_DIRECTORY/bookmarklet/tests/inject_ie_test.js"
 		nConcurrentTests=1
-		exclude='"4f0d0c90-5da0-11df-a08a-0800200c9a66", "0e7ab798-bb96-4a3a-9a01-8d1d67153908"'
+		exclude=""
 	else
 		testPayload="$CONNECTOR_DIRECTORY/bookmarklet/tests/inject_test.js"
 		nConcurrentTests=4
@@ -85,6 +85,14 @@ DONE
 	popd
 }
 
+# Wait for $OUTPUT_DIRECTORY to change
+function waitForTestResults {
+	LS_OUTPUT="`ls -lad \"$OUTPUT_DIRECTORY\"`"
+	while [ "`ls -lad \"$OUTPUT_DIRECTORY\"`" == "$LS_OUTPUT" ]; do
+		sleep 10
+	done
+}
+
 # Start provo
 function runProvo {
 	APP_DIRECTORY="$1"
@@ -100,57 +108,67 @@ function runProvo {
 	cp "$SCRIPT_DIRECTORY/prefs.js" "$FIREFOX_PROFILE_DIRECTORY"
 	cp -r "$SCRIPT_DIRECTORY/provo@zotero.org" "$FIREFOX_PROFILE_DIRECTORY/extensions"
 	
-	# Test Firefox
+	if [ $TEST_GECKO == 1 ]; then
+		provorun="-provorun"
+	else
+		provorun=""
+	fi
+	
+	# Start Zotero Standalone and test Gecko if requested
 	if [ $MAC_NATIVE == 1 ]; then
 		"$APP_DIRECTORY/Contents/MacOS/zotero" -profile "$FIREFOX_PROFILE_DIRECTORY" \
-		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "g,c,s" -provosuffix "$SUFFIX" &
+		-provooutputdir "$OUTPUT_DIRECTORY" $provorun -provosuffix "$SUFFIX" &
 	elif [ $WIN_NATIVE == 1 ]; then
 		"$APP_DIRECTORY/zotero.exe" -profile "`cygpath -w \"$FIREFOX_PROFILE_DIRECTORY\"`" \
-		-provooutputdir "`cygpath -w \"$OUTPUT_DIRECTORY\"`" -provobrowsers "g,c,s" -provosuffix "$SUFFIX" &
+		-provooutputdir "`cygpath -w \"$OUTPUT_DIRECTORY\"`" $provorun -provosuffix "$SUFFIX" &
 	else
 		"$APP_DIRECTORY/zotero" -profile "$FIREFOX_PROFILE_DIRECTORY" \
-		-provooutputdir "$OUTPUT_DIRECTORY" -provobrowsers "g,c" -provosuffix "$SUFFIX" &
+		-provooutputdir "$OUTPUT_DIRECTORY" $provorun -provosuffix "$SUFFIX" &
 	fi
 	ZOTERO_PID=$!
 	
 	# Wait until Fx output is written to a file
-	LS_OUTPUT="`ls -lad \"$OUTPUT_DIRECTORY\"`"
-	while [ "`ls -lad \"$OUTPUT_DIRECTORY\"`" == "$LS_OUTPUT" ]; do
-		sleep 10
-	done
+	if [ $TEST_GECKO == 1 ]; then
+		waitForTestResults
+	fi
 	
 	# Test bookmarklets
-	#testBookmarklet "$CONNECTOR_DIRECTORY" "i" "$SUFFIX"
-	#testBookmarklet "$CONNECTOR_DIRECTORY" "c" "$SUFFIX"
-	testBookmarklet "$CONNECTOR_DIRECTORY" "g" "$SUFFIX"
-	
-	# Test Chrome
-	if [ $MAC_NATIVE == 1 ]; then
-		"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-		--user-data-dir="$CHROME_PROFILE_DIRECTORY" \
-		--load-extension="$CONNECTOR_DIRECTORY/chrome" \
-		--new-window "http://127.0.0.1:23119/provo/run" &
-	elif [ $WIN_NATIVE == 1 ]; then
-		"`cygpath \"$LOCALAPPDATA\"`"/Google/Chrome/Application/chrome \
-		--user-data-dir="`cygpath -w \"$CHROME_PROFILE_DIRECTORY\"`" \
-		--load-extension="`cygpath -w \"$CONNECTOR_DIRECTORY/chrome\"`" \
-		--new-window "http://127.0.0.1:23119/provo/run" &
-	else
-		chromium --user-data-dir="$CHROME_PROFILE_DIRECTORY" \
-		--load-extension="$CONNECTOR_DIRECTORY/chrome" \
-		--new-window "http://127.0.0.1:23119/provo/run" &
+	if [ $TEST_BOOKMARKLET_IE == 1 ]; then
+		testBookmarklet "$CONNECTOR_DIRECTORY" "i" "$SUFFIX"
 	fi
-	CHROME_PID=$!
+	if [ $TEST_BOOKMARKLET_CHROME == 1 ]; then
+		testBookmarklet "$CONNECTOR_DIRECTORY" "c" "$SUFFIX"
+	fi
+	if [ $TEST_BOOKMARKLET_GECKO == 1 ]; then
+		testBookmarklet "$CONNECTOR_DIRECTORY" "g" "$SUFFIX"
+	fi
 	
-	# Wait until Chrome output is written to a file
-	LS_OUTPUT="`ls -lad \"$OUTPUT_DIRECTORY\"`"
-	while [ "`ls -lad \"$OUTPUT_DIRECTORY\"`" == "$LS_OUTPUT" ]; do
-		sleep 10
-	done
-	kill $CHROME_PID
+	if [ $TEST_CHROME == 1 ]; then
+		# Test Chrome
+		if [ $MAC_NATIVE == 1 ]; then
+			"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+			--user-data-dir="$CHROME_PROFILE_DIRECTORY" \
+			--load-extension="$CONNECTOR_DIRECTORY/chrome" \
+			--new-window "http://127.0.0.1:23119/provo/run" &
+		elif [ $WIN_NATIVE == 1 ]; then
+			"`cygpath \"$LOCALAPPDATA\"`"/Google/Chrome/Application/chrome \
+			--user-data-dir="`cygpath -w \"$CHROME_PROFILE_DIRECTORY\"`" \
+			--load-extension="`cygpath -w \"$CONNECTOR_DIRECTORY/chrome\"`" \
+			--new-window "http://127.0.0.1:23119/provo/run" &
+		else
+			chromium --user-data-dir="$CHROME_PROFILE_DIRECTORY" \
+			--load-extension="$CONNECTOR_DIRECTORY/chrome" \
+			--new-window "http://127.0.0.1:23119/provo/run" &
+		fi
+		CHROME_PID=$!
+		
+		# Wait until Chrome output is written to a file
+		waitForTestResults
+		kill $CHROME_PID
+	fi
 	
 	# Test Safari
-	if [ $MAC_NATIVE == 1 -o $WIN_NATIVE == 1 ]; then
+	if [ $TEST_SAFARI == 1 ]; then
 		# Clear cache
 		rm -rf "$SAFARI_CACHE_DIRECTORY"
 		# Update extension
@@ -162,12 +180,12 @@ function runProvo {
 			"/cygdrive/c/Program Files/Safari/Safari.exe" &
 		fi
 		SAFARI_PID=$!
-	fi
-	
-	wait $ZOTERO_PID
-	if [ $MAC_NATIVE == 1 -o $WIN_NATIVE == 1 ]; then
+		
+		waitForTestResults
 		kill $SAFARI_PID
 	fi
+	
+	kill $ZOTERO_PID
 }
 
 # Test an unpacked release
@@ -257,5 +275,5 @@ rm -rf "$TEMP_PROFILE_DIRECTORY"
 
 # Run postrun.sh if it exists
 if [ -e "$SCRIPT_DIRECTORY/postrun.sh" ]; then
-	"$SCRIPT_DIRECTORY/postrun.sh"
+	. "$SCRIPT_DIRECTORY/postrun.sh"
 fi

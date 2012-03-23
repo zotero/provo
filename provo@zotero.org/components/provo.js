@@ -53,17 +53,6 @@ Provo.prototype = {
 			exit();
 		}
 		
-		// Check browsers
-		var provoBrowsersString = cmdLine.handleFlagWithParam("provobrowsers", false);
-		if(!provoBrowsersString) {
-			Zotero.debug("Provo: No browsers specified; exiting", 1);
-			exit();
-		}
-		var browsers = provoBrowsersString.split(",");
-		for each(var browser in browsers) {
-			_waitingForBrowsers[browser] = true;
-		}
-		
 		// Suffix is optional
 		suffix = cmdLine.handleFlagWithParam("provosuffix", false);
 		if(!suffix) suffix = "";
@@ -73,7 +62,7 @@ Provo.prototype = {
 		Zotero.Server.Endpoints["/provo/save"] = ProvoSave;
 		
 		// Allow 60 seconds for startup to complete and then start running translator tester
-		if(_waitingForBrowsers["g"]) {
+		if(cmdLine.handleFlag("provorun", false)) {
 			Zotero.setTimeout(function() {
 				Zotero_TranslatorTesters.runAllTests(6, {}, writeData);
 			}, 60000);
@@ -119,34 +108,32 @@ ProvoSave.prototype = {
  * Serialize output to a file
  */
 function writeData(data) {
+	// Write data
 	var outfile = outputDir.clone();
 	outfile.append("testResults-"+data.browser+(suffix ? "-"+suffix : "")+".json");
 	delete _waitingForBrowsers[data.browser];
 	Zotero.File.putContents(outfile, JSON.stringify(data, null, "\t"));
-	if(Zotero.Utilities.isEmpty(_waitingForBrowsers)) Zotero.setTimeout(exit, 0);
+	
+	// Create index of output directory
+	var index = [];
+	var directoryEntries = outputDir.directoryEntries;
+	while(directoryEntries.hasMoreElements()) {
+		var filename = directoryEntries.getNext()
+			.QueryInterface(Components.interfaces.nsILocalFile).leafName;
+		if(/\.json$/.test(filename) && filename !== "index.json") {
+			index.push(filename);
+		}
+	}
+	
+	var indexFile = outputDir.clone();
+	indexFile.append("index.json");
+	Zotero.File.putContents(indexFile, JSON.stringify(index, null, "\t"));
 }
 
 /**
  * Quit Zotero/Firefox
  */
 function exit() {
-	// Create index of output directory
-	if(outputDir && outputDir.exists()) {
-		var index = [];
-		var directoryEntries = outputDir.directoryEntries;
-		while(directoryEntries.hasMoreElements()) {
-			var filename = directoryEntries.getNext()
-				.QueryInterface(Components.interfaces.nsILocalFile).leafName;
-			if(/\.json$/.test(filename) && filename !== "index.json") {
-				index.push(filename);
-			}
-		}
-		
-		var indexFile = outputDir.clone();
-		indexFile.append("index.json");
-		Zotero.File.putContents(indexFile, JSON.stringify(index, null, "\t"));
-	}
-	
 	// Quit
 	Components.classes['@mozilla.org/toolkit/app-startup;1']
 		.getService(Components.interfaces.nsIAppStartup)
