@@ -23,14 +23,15 @@ if [ -z "$SCRIPT_DIRECTORY" ]; then
 	. "$SCRIPT_DIRECTORY/config.sh"
 fi
 
-S3_PREFIX="zotero-translator-tests/output"
+BUCKET="zotero-translator-tests"
 
 pushd "$OUTPUT_DIRECTORY"
 	outputDirName="`dirname $OUTPUT_DIRECTORY`"
-	s3cmd put index.json "s3://$S3_PREFIX/$outputDirName/index.json"
+	s3cmd put index.json "s3://$BUCKET/$outputDirName/index.json"
 	for testResults in testResults*json; do
 		gzip "$testResults"
 		s3cmd put --add-header="Content-Encoding:gzip" "$testResults.gz" \
-			"s3://$S3_PREFIX/$outputDirName/$testResults"
+			"s3://$BUCKET/$outputDirName/$testResults"
+		gunzip "$testResults.gz"
 	done
 popd
