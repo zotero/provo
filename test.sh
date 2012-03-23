@@ -93,6 +93,15 @@ function waitForTestResults {
 	done
 }
 
+# Find a free server number by looking at .X*-lock files in /tmp.
+function find_free_servernum {
+    i=$SERVERNUM
+    while [ -f /tmp/.X$i-lock ]; do
+        i=$(($i + 1))
+    done
+    echo $i
+}
+
 # Start provo
 function runProvo {
 	APP_DIRECTORY="$1"
@@ -270,9 +279,18 @@ git pull origin master
 popd
 
 # Test
+XVFB_PID=
+if [ $MAC_NATIVE != 1 -a $WIN_NATIVE != 1 -a -z "$DISPLAY" ]; then
+	export DISPLAY=":`find_free_servernum`"
+	XVFB_PID=Xvfb "$DISPLAY" &
+fi
 testBranch 3.0
 
 # Clean up
+if [ -n "$XVFB_PID" ]; then
+	kill "$XVFB_PID"
+fi
+
 rm -rf "$TEMP_PROFILE_DIRECTORY"
 
 # Run postrun.sh if it exists
