@@ -227,9 +227,11 @@ function testBranch {
 	popd
 	
 	# Build bookmarklet tester
-	pushd "$ZC_DIRECTORY/bookmarklet/tests"
-	ant
-	popd
+	if [ $TEST_BOOKMARKLET_IE == 1 -o $TEST_BOOKMARKLET_SAFARI == 1 -o $TEST_BOOKMARKLET_GECKO == 1 ]; then
+		pushd "$ZC_DIRECTORY/bookmarklet/tests"
+		ant
+		popd
+	fi
 	
 	# Build Zotero Standalone
 	pushd "$ZSA_DIRECTORY"
