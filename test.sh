@@ -282,7 +282,8 @@ popd
 XVFB_PID=
 if [ $MAC_NATIVE != 1 -a $WIN_NATIVE != 1 -a -z "$DISPLAY" ]; then
 	export DISPLAY=":`find_free_servernum`"
-	XVFB_PID=Xvfb "$DISPLAY" &
+	Xvfb "$DISPLAY" &
+	XVFB_PID=$!
 fi
 testBranch 3.0
 
