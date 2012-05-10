@@ -127,9 +127,12 @@ function runProvo {
 	fi
 	ZOTERO_PID=$!
 	
-	# Wait until Fx output is written to a file
 	if [ $TEST_GECKO == 1 ]; then
+		# Wait until Fx output is written to a file
 		waitForTestResults
+	else
+		# Wait for startup
+		sleep 60;
 	fi
 	
 	# Test bookmarklets

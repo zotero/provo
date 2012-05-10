@@ -28,7 +28,7 @@ Components.utils.import("resource://gre/modules/FileUtils.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("chrome://zotero/content/tools/testTranslators/translatorTester.js");
 
-var Zotero, translatorsDir, outputDir, suffix, _waitingForBrowsers = {};
+var Zotero, translatorsDir, outputDir, suffix;
 
 function Provo() {}
 Provo.prototype = {
@@ -111,7 +111,6 @@ function writeData(data) {
 	// Write data
 	var outfile = outputDir.clone();
 	outfile.append("testResults-"+data.browser+(suffix ? "-"+suffix : "")+".json");
-	delete _waitingForBrowsers[data.browser];
 	Zotero.File.putContents(outfile, JSON.stringify(data, null, "\t"));
 	
 	// Create index of output directory
