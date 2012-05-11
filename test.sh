@@ -276,7 +276,7 @@ pushd "$TRANSLATORS_DIRECTORY"
 git pull origin master
 popd
 
-# Test
+# Start Xvfb on *NIX
 XVFB_PID=
 if [ $MAC_NATIVE != 1 -a $WIN_NATIVE != 1 -a -z "$DISPLAY" ]; then
 	export DISPLAY=":137"
@@ -285,6 +285,12 @@ if [ $MAC_NATIVE != 1 -a $WIN_NATIVE != 1 -a -z "$DISPLAY" ]; then
 	echo "No available display; starting Xvfb on $DISPLAY"
 fi
 
+# Run prerun.sh if it exists
+if [ -e "$SCRIPT_DIRECTORY/postrun.sh" ]; then
+	. "$SCRIPT_DIRECTORY/postrun.sh"
+fi
+
+# Test
 testBranch 3.0
 
 # Clean up

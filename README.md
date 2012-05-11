@@ -12,6 +12,7 @@ Requirements are the same as for [building Zotero Standalone](http://www.zotero.
 * [Safari](http://www.apple.com/safari/) (for Safari connector tests)
   * [xar](https://code.google.com/p/xar/issues/detail?id=76) modified to build safariextz archives
   * libxml2 and openssl (for xar)
+  * xxd
   * Safari certificate, dumped to pem and der following the instructions on the xar page above
 
 ### Bookmarklet Tests
