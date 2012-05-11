@@ -286,8 +286,8 @@ if [ $MAC_NATIVE != 1 -a $WIN_NATIVE != 1 -a -z "$DISPLAY" ]; then
 fi
 
 # Run prerun.sh if it exists
-if [ -e "$SCRIPT_DIRECTORY/postrun.sh" ]; then
-	. "$SCRIPT_DIRECTORY/postrun.sh"
+if [ -e "$SCRIPT_DIRECTORY/prerun.sh" ]; then
+	. "$SCRIPT_DIRECTORY/prerun.sh"
 fi
 
 # Test
