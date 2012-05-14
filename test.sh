@@ -56,12 +56,10 @@ function testBookmarklet {
 	translatorsDirectory="$TRANSLATORS_DIRECTORY"
 	if [ $BROWSER == "i" ]; then
 		testPayload="$CONNECTOR_DIRECTORY/bookmarklet/tests/inject_ie_test.js"
-		nConcurrentTests=1
-		exclude=""
+		nConcurrentTests=4
 	else
 		testPayload="$CONNECTOR_DIRECTORY/bookmarklet/tests/inject_test.js"
 		nConcurrentTests=4
-		exclude=""
 	fi
 	if [ $WIN_NATIVE == 1 ]; then
 		translatorsDirectory="`cygpath -w \"$translatorsDirectory\" | sed 's/\\\\/\\\\\\\\/g'`"
@@ -76,12 +74,11 @@ function testBookmarklet {
 	"testPayload":"$testPayload",
 	"concurrentTests":$nConcurrentTests,
 	"browser":"$BROWSER",
-	"version":"$VERSION",
-	"exclude":[${exclude}]
+	"version":"$VERSION"
 }
 DONE
 	pushd "$CONNECTOR_DIRECTORY/bookmarklet/tests"
-	java -jar test.jar "$configFile" "$outputFile"
+	ruby test.rb "$configFile" "$outputFile"
 	popd
 }
 
@@ -232,13 +229,6 @@ function testBranch {
 	git pull
 	./build.sh debug
 	popd
-	
-	# Build bookmarklet tester
-	if [ $TEST_BOOKMARKLET_IE == 1 -o $TEST_BOOKMARKLET_CHROME == 1 -o $TEST_BOOKMARKLET_GECKO == 1 ]; then
-		pushd "$ZC_DIRECTORY/bookmarklet/tests"
-		ant
-		popd
-	fi
 	
 	# Build Zotero Standalone
 	pushd "$ZSA_DIRECTORY"
