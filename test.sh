@@ -56,7 +56,7 @@ function testBookmarklet {
 	translatorsDirectory="$TRANSLATORS_DIRECTORY"
 	if [ $BROWSER == "i" ]; then
 		testPayload="$CONNECTOR_DIRECTORY/bookmarklet/tests/inject_ie_test.js"
-		nConcurrentTests=4
+		nConcurrentTests=1
 	else
 		testPayload="$CONNECTOR_DIRECTORY/bookmarklet/tests/inject_test.js"
 		nConcurrentTests=4
