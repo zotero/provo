@@ -204,7 +204,7 @@ function runProvo {
 			pushd "$TRANSLATION_SERVER_DIRECTORY"
 			./build.sh
 			popd
-			"$TRANSLATION_SERVER_DIRECTORY/build/run_translation-server.sh" -test outputFile
+			"$TRANSLATION_SERVER_DIRECTORY/build/run_translation-server.sh" -test "$outputFile"
 		fi
 	fi
 }
