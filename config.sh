@@ -5,6 +5,8 @@ ZSA_DIRECTORY="$SCRIPT_DIRECTORY/zotero-standalone-build"
 ZC_REPOSITORY="git://github.com/zotero/zotero-connectors.git"
 ZC_DIRECTORY="$SCRIPT_DIRECTORY/zotero-connectors"
 
+TRANSLATION_SERVER_DIRECTORY="$SCRIPT_DIRECTORY/translation-server"
+
 TEMP_PROFILE_DIRECTORY="$SCRIPT_DIRECTORY/tmp_profile"
 OUTPUT_DIRECTORY="$SCRIPT_DIRECTORY/output/`date -u +%Y-%m-%d`"
 
@@ -14,6 +16,7 @@ TEST_BOOKMARKLET_CHROME=0
 TEST_BOOKMARKLET_GECKO=0
 TEST_CHROME=0
 TEST_SAFARI=0
+TEST_SERVER=0
 
 # Safari extension directory
 # Safari homepage must be set to http://127.0.0.1:23119/provo/run for testing

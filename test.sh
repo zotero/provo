@@ -190,6 +190,23 @@ function runProvo {
 	fi
 	
 	kill $ZOTERO_PID
+	
+	# Test server
+	if [ $TEST_SERVER == 1 ]; then
+		if [ ! -d "$TRANSLATION_SERVER_DIRECTORY" ]; then
+			echo "$TRANSLATION_SERVER_DIRECTORY does not exist; not testing translation-server"
+		else
+			outputFile="$OUTPUT_DIRECTORY/testResults-v-$SUFFIX.json"
+			if [ $WIN_NATIVE == 1 ]; then
+				outputFile="`cygpath -w \"$outputFile\"`"
+			fi
+			
+			pushd "$TRANSLATION_SERVER_DIRECTORY"
+			./build.sh
+			popd
+			"$TRANSLATION_SERVER_DIRECTORY/build/run_translation-server.sh" -test outputFile
+		fi
+	fi
 }
 
 # Test an unpacked release
