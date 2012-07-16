@@ -248,6 +248,7 @@ function testBranch {
 	pushd "$ZC_DIRECTORY"
 	git reset --hard
 	git pull
+	git submodule update
 	./build.sh debug
 	popd
 	
