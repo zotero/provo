@@ -55,10 +55,10 @@ function testBookmarklet {
 	outputFile="$OUTPUT_DIRECTORY/testResults-${BROWSER}b-$VERSION.json"
 	translatorsDirectory="$TRANSLATORS_DIRECTORY"
 	if [ $BROWSER == "i" ]; then
-		testPayload="$CONNECTOR_DIRECTORY/bookmarklet/tests/inject_ie_test.js"
+		testPayload="$CONNECTOR_DIRECTORY/build/bookmarklet/tests/inject_ie_test.js"
 		nConcurrentTests=1
 	else
-		testPayload="$CONNECTOR_DIRECTORY/bookmarklet/tests/inject_test.js"
+		testPayload="$CONNECTOR_DIRECTORY/build/bookmarklet/tests/inject_test.js"
 		nConcurrentTests=4
 	fi
 	if [ $WIN_NATIVE == 1 ]; then
@@ -77,7 +77,7 @@ function testBookmarklet {
 	"version":"$VERSION"
 }
 DONE
-	pushd "$CONNECTOR_DIRECTORY/bookmarklet/tests"
+	pushd "$CONNECTOR_DIRECTORY/src/bookmarklet/tests"
 	ruby test_server.rb "$configFile" &
 	SERVER_PID=$!
 	ruby test.rb "$configFile" "$outputFile"
@@ -152,16 +152,16 @@ function runProvo {
 		if [ $MAC_NATIVE == 1 ]; then
 			"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
 			--user-data-dir="$CHROME_PROFILE_DIRECTORY" \
-			--load-extension="$CONNECTOR_DIRECTORY/chrome" \
+			--load-extension="$CONNECTOR_DIRECTORY/build/chrome" \
 			--new-window "http://127.0.0.1:23119/provo/run" &
 		elif [ $WIN_NATIVE == 1 ]; then
 			"`cygpath \"$LOCALAPPDATA\"`"/Google/Chrome/Application/chrome \
 			--user-data-dir="`cygpath -w \"$CHROME_PROFILE_DIRECTORY\"`" \
-			--load-extension="`cygpath -w \"$CONNECTOR_DIRECTORY/chrome\"`" \
+			--load-extension="`cygpath -w \"$CONNECTOR_DIRECTORY/build/chrome\"`" \
 			--new-window "http://127.0.0.1:23119/provo/run" &
 		else
 			chromium --user-data-dir="$CHROME_PROFILE_DIRECTORY" \
-			--load-extension="$CONNECTOR_DIRECTORY/chrome" \
+			--load-extension="$CONNECTOR_DIRECTORY/build/chrome" \
 			--new-window "http://127.0.0.1:23119/provo/run" &
 		fi
 		CHROME_PID=$!
@@ -176,7 +176,7 @@ function runProvo {
 		# Clear cache
 		rm -rf "$SAFARI_CACHE_DIRECTORY"
 		# Update extension
-		cp -r "$CONNECTOR_DIRECTORY/Zotero_Connector.safariextz" "$SAFARI_EXTENSION_LOCATION"
+		cp -r "$CONNECTOR_DIRECTORY/dist/Zotero_Connector.safariextz" "$SAFARI_EXTENSION_LOCATION"
 		# Launch Safari to run tests
 		if [ $MAC_NATIVE == 1 ]; then
 			"/Applications/Safari.app/Contents/MacOS/Safari" &
