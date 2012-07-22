@@ -231,7 +231,7 @@ function testBranch {
 	BRANCH="$1"
 	
 	ZSA_ZOTERO_DIRECTORY="$ZSA_DIRECTORY/modules/zotero"
-	ZC_ZOTERO_DIRECTORY="$ZC_DIRECTORY/modules/zotero"
+	ZC_ZOTERO_DIRECTORY="$ZC_DIRECTORY/src/zotero"
 	
 	pushd "$ZSA_ZOTERO_DIRECTORY"
 	git checkout "$BRANCH"
