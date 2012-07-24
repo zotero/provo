@@ -249,7 +249,7 @@ function testBranch {
 	git reset --hard
 	git pull
 	git submodule update
-	./build.sh debug
+	./build.sh -d
 	popd
 	
 	# Build Zotero Standalone
