@@ -239,11 +239,6 @@ function testBranch {
 	SUFFIX="$BRANCH.SOURCE.`git log -n 1 --pretty='format:%h'`"
 	popd
 	
-	pushd "$ZC_ZOTERO_DIRECTORY"
-	git checkout "$BRANCH"
-	git pull
-	popd
-	
 	# Build connectors
 	pushd "$ZC_DIRECTORY"
 	git reset --hard
