@@ -78,9 +78,9 @@ function testBookmarklet {
 }
 DONE
 	pushd "$CONNECTOR_DIRECTORY/src/bookmarklet/tests"
-	ruby test_server.rb "$configFile" &
+	ruby -E UTF-8:UTF-8 test_server.rb "$configFile" &
 	SERVER_PID=$!
-	ruby test.rb "$configFile" "$outputFile"
+	ruby -E UTF-8:UTF-8 test.rb "$configFile" "$outputFile"
 	kill $SERVER_PID
 	kill -9 $SERVER_PID >/dev/null 2>&1
 	popd
