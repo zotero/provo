@@ -298,7 +298,7 @@ if [ -e "$SCRIPT_DIRECTORY/prerun.sh" ]; then
 fi
 
 # Test
-testBranch 3.0
+testBranch 3.1
 
 # Clean up
 if [ -n "$XVFB_PID" ]; then
