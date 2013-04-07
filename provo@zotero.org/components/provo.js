@@ -30,6 +30,26 @@ Components.utils.import("chrome://zotero/content/tools/testTranslators/translato
 
 var Zotero, translatorsDir, outputDir, suffix;
 
+const BOOKMARKLET_FILES = ["common.js", "common_ie.js", "iframe.html",
+	"iframe.js", "iframe_ie.html", "iframe_ie.js", "tests/inject_test.js",
+	"tests/inject_ie_test.js"];
+
+function readPathArgument(cmdLine, arg) {
+	var outputDirString = cmdLine.handleFlagWithParam(arg, false);
+	if(!outputDirString) {
+		Zotero.debug("Provo: "+arg+" not specified; exiting", 1);
+		exit();
+	}
+	outputDir = Components.classes["@mozilla.org/file/local;1"].
+			createInstance(Components.interfaces.nsILocalFile);
+	outputDir.initWithPath(outputDirString);
+	if(!outputDir.exists()) {
+		Zotero.debug("Provo: "+arg+" does not exist; exiting", 1);
+		exit();
+	}
+	return outputDir;
+}
+
 function Provo() {}
 Provo.prototype = {
 	/* nsICommandLineHandler */
@@ -38,20 +58,9 @@ Provo.prototype = {
 		Zotero = Components.classes["@zotero.org/Zotero;1"]
 			.getService(Components.interfaces.nsISupports)
 			.wrappedJSObject;
-		
-		// Check output directory
-		var outputDirString = cmdLine.handleFlagWithParam("provooutputdir", false);
-		if(!outputDirString) {
-			Zotero.debug("Provo: No output directory specified; exiting", 1);
-			exit();
-		}
-		outputDir = Components.classes["@mozilla.org/file/local;1"].
-				createInstance(Components.interfaces.nsILocalFile);
-		outputDir.initWithPath(outputDirString);
-		if(!outputDir.exists()) {
-			Zotero.debug("Provo: Output directory does not exist; exiting", 1);
-			exit();
-		}
+
+		outputDir = readPathArgument(cmdLine, "provooutputdir");
+		var payloadDir = readPathArgument(cmdLine, "provopayloaddir");
 		
 		// Suffix is optional
 		suffix = cmdLine.handleFlagWithParam("provosuffix", false);
@@ -60,6 +69,14 @@ Provo.prototype = {
 		// Add endpoints
 		Zotero.Server.Endpoints["/provo/run"] = ProvoRun;
 		Zotero.Server.Endpoints["/provo/save"] = ProvoSave;
+		for(var i=0; i<BOOKMARKLET_FILES.length; i++) {
+			var file = BOOKMARKLET_FILES[i],
+				fileParts = file.split("/"),
+				filePath = payloadDir.clone();
+			for(var j=0; j<fileParts.length; j++) filePath.append(fileParts[j]);
+
+			Zotero.Server.Endpoints["/provo/bookmarklet/"+file] = getFileEndpoint(filePath);
+		}
 		
 		// Allow 60 seconds for startup to complete and then start running translator tester
 		if(cmdLine.handleFlag("provorun", false)) {
@@ -103,6 +120,25 @@ ProvoSave.prototype = {
 		sendResponseCallback(200, "text/plain", "OK");
 	}
 };
+
+/**
+ * Serve a text file
+ */
+function getFileEndpoint(file) {
+	var contents = Zotero.File.getContents(file),
+		leafName = file.leafName,
+		ext = leafName.substr(leafName.lastIndexOf(".")),
+		mimeType = ext == ".js" ? "application/javascript" : "text/html";
+
+	var endpoint = function() {};
+	endpoint.prototype = {
+		"supportedMethods":["GET"],
+		"init":function(data, sendResponseCallback) {
+			sendResponseCallback(200, mimeType, contents);
+		}
+	};
+	return endpoint;
+}
 
 /**
  * Serialize output to a file

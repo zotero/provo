@@ -63,7 +63,6 @@ function testBookmarklet {
 	fi
 	if [ $WIN_NATIVE == 1 ]; then
 		translatorsDirectory="`cygpath -w \"$translatorsDirectory\" | sed 's/\\\\/\\\\\\\\/g'`"
-		testPayload="`cygpath -w \"$testPayload\" | sed 's/\\\\/\\\\\\\\/g'`"
 		configFile="`cygpath -w \"$configFile\"`"
 		outputFile="`cygpath -w \"$outputFile\"`"
 	fi
@@ -71,18 +70,13 @@ function testBookmarklet {
 	cat > "$configFile" <<DONE
 {
 	"translatorsDirectory":"$translatorsDirectory",
-	"testPayload":"$testPayload",
 	"concurrentTests":$nConcurrentTests,
 	"browser":"$BROWSER",
 	"version":"$VERSION"
 }
 DONE
 	pushd "$CONNECTOR_DIRECTORY/src/bookmarklet/tests"
-	ruby -E UTF-8:UTF-8 test_server.rb "$configFile" &
-	SERVER_PID=$!
 	ruby -E UTF-8:UTF-8 test.rb "$configFile" "$outputFile"
-	kill $SERVER_PID
-	kill -9 $SERVER_PID >/dev/null 2>&1
 	popd
 }
 
@@ -103,6 +97,7 @@ function runProvo {
 	# Make profile
 	FIREFOX_PROFILE_DIRECTORY="$TEMP_PROFILE_DIRECTORY/firefox"
 	CHROME_PROFILE_DIRECTORY="$TEMP_PROFILE_DIRECTORY/chrome"
+	BOOKMARKLET_PAYLOAD_DIRECTORY="$CONNECTOR_DIRECTORY/build/bookmarklet/"
 	rm -rf "$TEMP_PROFILE_DIRECTORY"
 	mkdir -p "$FIREFOX_PROFILE_DIRECTORY/extensions"
 	mkdir "$FIREFOX_PROFILE_DIRECTORY/zotero"
@@ -117,14 +112,24 @@ function runProvo {
 	
 	# Start Zotero Standalone and test Gecko if requested
 	if [ $MAC_NATIVE == 1 ]; then
-		"$APP_DIRECTORY/Contents/MacOS/zotero" -profile "$FIREFOX_PROFILE_DIRECTORY" \
-		-provooutputdir "$OUTPUT_DIRECTORY" $provorun -provosuffix "$SUFFIX" &
+		"$APP_DIRECTORY/Contents/MacOS/zotero-bin" \
+		"$APP_DIRECTORY/Contents/Resources/application.ini" \
+		-profile "$FIREFOX_PROFILE_DIRECTORY" \
+		-provooutputdir "$OUTPUT_DIRECTORY" \
+		-provopayloaddir "$BOOKMARKLET_PAYLOAD_DIRECTORY" \
+		$provorun -provosuffix "$SUFFIX" &
 	elif [ $WIN_NATIVE == 1 ]; then
-		"$APP_DIRECTORY/zotero.exe" -profile "`cygpath -w \"$FIREFOX_PROFILE_DIRECTORY\"`" \
-		-provooutputdir "`cygpath -w \"$OUTPUT_DIRECTORY\"`" $provorun -provosuffix "$SUFFIX" &
+		"$APP_DIRECTORY/zotero.exe" \
+		-profile "`cygpath -w \"$FIREFOX_PROFILE_DIRECTORY\"`" \
+		-provooutputdir "`cygpath -w \"$OUTPUT_DIRECTORY\"`" \
+		-provopayloaddir "`cygpath -w \"$BOOKMARKLET_PAYLOAD_DIRECTORY\"`" \
+		$provorun -provosuffix "$SUFFIX" &
 	else
-		"$APP_DIRECTORY/zotero" -profile "$FIREFOX_PROFILE_DIRECTORY" \
-		-provooutputdir "$OUTPUT_DIRECTORY" $provorun -provosuffix "$SUFFIX" &
+		"$APP_DIRECTORY/zotero" \
+		-profile "$FIREFOX_PROFILE_DIRECTORY" \
+		-provooutputdir "$OUTPUT_DIRECTORY" \
+		-provopayloaddir "$BOOKMARKLET_PAYLOAD_DIRECTORY" \
+		$provorun -provosuffix "$SUFFIX" &
 	fi
 	ZOTERO_PID=$!
 	
@@ -237,6 +242,8 @@ function testBranch {
 	git checkout "$BRANCH"
 	git pull
 	SUFFIX="$BRANCH.SOURCE.`git log -n 1 --pretty='format:%h'`"
+	sed -i '' 's/https:\/\/www\.zotero\.org\/bookmarklet\//http:\/\/127.0.0.1:23119\/provo\/bookmarklet\//g' \
+		chrome/content/zotero/xpcom/zotero.js
 	popd
 	
 	# Build connectors
