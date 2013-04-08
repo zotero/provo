@@ -81,7 +81,7 @@ Provo.prototype = {
 		// Allow 60 seconds for startup to complete and then start running translator tester
 		if(cmdLine.handleFlag("provorun", false)) {
 			Zotero.setTimeout(function() {
-				Zotero_TranslatorTesters.runAllTests(6, {}, writeData);
+				Zotero_TranslatorTesters.runAllTests(3, {}, writeData);
 			}, 60000);
 		}
 	},
