@@ -40,7 +40,7 @@ function readPathArgument(cmdLine, arg) {
 		Zotero.debug("Provo: "+arg+" not specified; exiting", 1);
 		exit();
 	}
-	outputDir = Components.classes["@mozilla.org/file/local;1"].
+	var outputDir = Components.classes["@mozilla.org/file/local;1"].
 			createInstance(Components.interfaces.nsILocalFile);
 	outputDir.initWithPath(outputDirString);
 	if(!outputDir.exists()) {
@@ -81,7 +81,7 @@ Provo.prototype = {
 		// Allow 60 seconds for startup to complete and then start running translator tester
 		if(cmdLine.handleFlag("provorun", false)) {
 			Zotero.setTimeout(function() {
-				Zotero_TranslatorTesters.runAllTests(3, {}, writeData);
+				Zotero_TranslatorTesters.runAllTests(1, {}, writeData);
 			}, 60000);
 		}
 	},
