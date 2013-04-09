@@ -242,8 +242,9 @@ function testBranch {
 	git checkout "$BRANCH"
 	git pull
 	SUFFIX="$BRANCH.SOURCE.`git log -n 1 --pretty='format:%h'`"
-	sed -i '' 's/https:\/\/www\.zotero\.org\/bookmarklet\//http:\/\/127.0.0.1:23119\/provo\/bookmarklet\//g' \
+	sed -i 'bak' 's/https:\/\/www\.zotero\.org\/bookmarklet\//http:\/\/127.0.0.1:23119\/provo\/bookmarklet\//g' \
 		chrome/content/zotero/xpcom/zotero.js
+	rm chrome/content/zotero/xpcom/zotero.js.bak
 	popd
 	
 	# Build connectors
