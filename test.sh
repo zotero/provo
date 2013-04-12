@@ -252,6 +252,7 @@ function testBranch {
 	git reset --hard
 	git pull
 	git submodule update
+	cp src/bookmarklet/tests/zotero_config.js src/bookmarklet/zotero_config.js
 	./build.sh -d
 	popd
 	
