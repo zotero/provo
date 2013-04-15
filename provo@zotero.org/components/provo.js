@@ -30,7 +30,7 @@ Components.utils.import("chrome://zotero/content/tools/testTranslators/translato
 
 var Zotero, translatorsDir, outputDir, suffix;
 
-const BOOKMARKLET_FILES = ["common.js", "common_ie.js", "iframe.html",
+const BOOKMARKLET_FILES = ["common.js", "common_ie.js", "ie_hack.js", "iframe.html",
 	"iframe.js", "iframe_ie.html", "iframe_ie.js", "tests/inject_test.js",
 	"tests/inject_ie_test.js"];
 
