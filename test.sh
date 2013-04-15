@@ -59,7 +59,7 @@ function testBookmarklet {
 		nConcurrentTests=1
 	else
 		testPayload="$CONNECTOR_DIRECTORY/build/bookmarklet/tests/inject_test.js"
-		nConcurrentTests=4
+		nConcurrentTests=2
 	fi
 	if [ $WIN_NATIVE == 1 ]; then
 		translatorsDirectory="`cygpath -w \"$translatorsDirectory\" | sed 's/\\\\/\\\\\\\\/g'`"
@@ -243,6 +243,8 @@ function testBranch {
 	git checkout "$BRANCH"
 	git pull
 	SUFFIX="$BRANCH.SOURCE.`git log -n 1 --pretty='format:%h'`"
+	perl -pi -e "s/((?:HTTP_)?BOOKMARKLET_ORIGIN *: *)'[^']*/\$1'"'http:\/\/127.0.0.1:23119'"/g" \
+		chrome/content/zotero/xpcom/zotero.js
 	perl -pi -e 's/https:\/\/www\.zotero\.org\/bookmarklet\//http:\/\/127.0.0.1:23119\/provo\/bookmarklet\//g' \
 		chrome/content/zotero/xpcom/zotero.js
 	popd
