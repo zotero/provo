@@ -239,6 +239,7 @@ function testBranch {
 	ZC_ZOTERO_DIRECTORY="$ZC_DIRECTORY/src/zotero"
 	
 	pushd "$ZSA_ZOTERO_DIRECTORY"
+	git reset --hard
 	git checkout "$BRANCH"
 	git pull
 	SUFFIX="$BRANCH.SOURCE.`git log -n 1 --pretty='format:%h'`"
