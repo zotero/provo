@@ -2,6 +2,9 @@
 ZSA_REPOSITORY="git://github.com/zotero/zotero-standalone-build.git"
 ZSA_DIRECTORY="$SCRIPT_DIRECTORY/zotero-standalone-build"
 
+ZB_REPOSITORY="git://github.com/zotero/zotero-build.git"
+ZB_DIRECTORY="$SCRIPT_DIRECTORY/zotero-build"
+
 ZC_REPOSITORY="git://github.com/zotero/zotero-connectors.git"
 ZC_DIRECTORY="$SCRIPT_DIRECTORY/zotero-connectors"
 

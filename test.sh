@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Copyright (c) 2012  Zotero
 #                     Center for History and New Media
@@ -20,12 +20,19 @@
 
 SCRIPT_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . "$SCRIPT_DIRECTORY/config.sh"
-TRANSLATORS_DIRECTORY="$ZSA_DIRECTORY/modules/zotero/translators"
+TRANSLATORS_DIRECTORY="$SCRIPT_DIRECTORY/zotero-translators"
 
-[ "`uname`" != "Darwin" ]
-MAC_NATIVE=$?
-[ "`uname -o 2> /dev/null`" != "Cygwin" ]
-WIN_NATIVE=$?
+if [ "`uname`" = "Darwin" ]; then
+	MAC_NATIVE=1
+else
+	MAC_NATIVE=0
+fi
+if [ "`uname -o 2> /dev/null`" = "Cygwin" ]; then
+	WIN_NATIVE=1
+else
+	WIN_NATIVE=0
+fi
+	
 
 # Get platform and build directory
 if [ $MAC_NATIVE == 1 ]; then
@@ -235,13 +242,10 @@ function testRelease {
 function testBranch {
 	BRANCH="$1"
 	
-	ZSA_ZOTERO_DIRECTORY="$ZSA_DIRECTORY/modules/zotero"
-	ZC_ZOTERO_DIRECTORY="$ZC_DIRECTORY/src/zotero"
+	# Build Zotero XPI
+	"$ZB_DIRECTORY/xpi/build_xpi_4.0" "$BRANCH" test
 	
-	pushd "$ZSA_ZOTERO_DIRECTORY"
-	git reset --hard
-	git checkout "$BRANCH"
-	git pull
+	pushd "$ZB_DIRECTORY/xpi/build/zotero"
 	SUFFIX="$BRANCH.SOURCE.`git log -n 1 --pretty='format:%h'`"
 	perl -pi -e "s/((?:HTTP_)?BOOKMARKLET_ORIGIN *: *)'[^']*/\$1'"'http:\/\/127.0.0.1:23119'"/g" \
 		chrome/content/zotero/xpcom/zotero.js
@@ -260,10 +264,22 @@ function testBranch {
 	
 	# Build Zotero Standalone
 	pushd "$ZSA_DIRECTORY"
-	./build.sh -s "$ZSA_ZOTERO_DIRECTORY" -p "$PLATFORMS"
+	./build.sh -f "$ZB_DIRECTORY/xpi/build/zotero-build.xpi" -d -p "$PLATFORMS"
 	runProvo "$ZSA_STAGE_DIRECTORY" "$ZC_DIRECTORY" "$SUFFIX"
 	popd
 }
+
+# Make sure zotero-build directory exists, or else clone it
+if [ ! -d "$ZB_DIRECTORY" ]; then
+	if [ -e "$ZB_DIRECTORY" ]; then
+		echo "Specified ZB_DIRECTORY exists but is not a directory. Exiting." 1>&2
+		exit 1
+	fi
+	git clone --recursive "$ZB_REPOSITORY" "$ZB_DIRECTORY"
+	pushd "$ZB_DIRECTORY"
+	mkdir xpi/build/zotero
+	popd
+fi
 
 # Make sure zotero-standalone-build directory exists, or else clone it
 if [ ! -d "$ZSA_DIRECTORY" ]; then
