@@ -1,9 +1,10 @@
-#!/bin/bash -e
+#!/bin/bash
+set -euo pipefail
 
-# Copyright (c) 2012  Zotero
-#                     Center for History and New Media
-#                     George Mason University, Fairfax, Virginia, USA
-#                     http://zotero.org
+# Copyright (c) 2012-2016  Zotero
+#                          Center for History and New Media
+#                          George Mason University, Fairfax, Virginia, USA
+#                          http://zotero.org
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -18,9 +19,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-SCRIPT_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-. "$SCRIPT_DIRECTORY/config.sh"
-TRANSLATORS_DIRECTORY="$SCRIPT_DIRECTORY/zotero-translators"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. "$SCRIPT_DIR/config.sh"
+TRANSLATORS_DIR="$SCRIPT_DIR/zotero-translators"
 
 if [ "`uname`" = "Darwin" ]; then
 	MAC_NATIVE=1
@@ -37,35 +38,39 @@ fi
 # Get platform and build directory
 if [ $MAC_NATIVE == 1 ]; then
 	PLATFORMS=m
-	ZSA_STAGE_DIRECTORY="$ZSA_DIRECTORY/staging/Zotero.app"
+	STANDALONE_STAGE_DIR="$STANDALONE_BUILD_DIR/staging/Zotero.app"
 elif [ $WIN_NATIVE == 1 ]; then
 	PLATFORMS=w
-	ZSA_STAGE_DIRECTORY="$ZSA_DIRECTORY/staging/Zotero_win32"
+	STANDALONE_STAGE_DIR="$STANDALONE_BUILD_DIR/staging/Zotero_win32"
 else
 	PLATFORMS=l
-	ZSA_STAGE_DIRECTORY="$ZSA_DIRECTORY/staging/Zotero_linux-`arch`"
+	STANDALONE_STAGE_DIR="$STANDALONE_BUILD_DIR/staging/Zotero_linux-`arch`"
 fi
 
 # Make sure temp profile directory is specified, so we don't rm -rf /
-if [ -z "$TEMP_PROFILE_DIRECTORY" ]; then
+if [ -z "$TEMP_PROFILE_DIR" ]; then
 	echo "No temporary profile directory specified. Exiting." 1>&2
 	exit 1
 fi
 
+#
+# Functions
+#
+
 # Make bookmarklet config
 function testBookmarklet {
-	CONNECTOR_DIRECTORY="$1"
+	CONNECTOR_DIR="$1"
 	BROWSER="$2"
 	VERSION="$3"
 	
-	configFile="$TEMP_PROFILE_DIRECTORY/bookmarklet_config.json"
-	outputFile="$OUTPUT_DIRECTORY/testResults-${BROWSER}b-$VERSION.json"
-	translatorsDirectory="$TRANSLATORS_DIRECTORY"
+	configFile="$TEMP_PROFILE_DIR/bookmarklet_config.json"
+	outputFile="$OUTPUT_DIR/testResults-${BROWSER}b-$VERSION.json"
+	translatorsDirectory="$TRANSLATORS_DIR"
 	if [ $BROWSER == "i" ]; then
-		testPayload="$CONNECTOR_DIRECTORY/build/bookmarklet/tests/inject_ie_test.js"
+		testPayload="$CONNECTOR_DIR/build/bookmarklet/tests/inject_ie_test.js"
 		nConcurrentTests=1
 	else
-		testPayload="$CONNECTOR_DIRECTORY/build/bookmarklet/tests/inject_test.js"
+		testPayload="$CONNECTOR_DIR/build/bookmarklet/tests/inject_test.js"
 		nConcurrentTests=2
 	fi
 	if [ $WIN_NATIVE == 1 ]; then
@@ -82,34 +87,33 @@ function testBookmarklet {
 	"version":"$VERSION"
 }
 DONE
-	pushd "$CONNECTOR_DIRECTORY/src/bookmarklet/tests"
+	cd "$CONNECTOR_DIR/src/bookmarklet/tests"
 	ruby -E UTF-8:UTF-8 test.rb "$configFile" "$outputFile"
-	popd
 }
 
-# Wait for $OUTPUT_DIRECTORY to change
+# Wait for $OUTPUT_DIR to change
 function waitForTestResults {
-	LS_OUTPUT="`ls -lad \"$OUTPUT_DIRECTORY\"`"
-	while [ "`ls -lad \"$OUTPUT_DIRECTORY\"`" == "$LS_OUTPUT" ]; do
+	LS_OUTPUT="`ls -lad \"$OUTPUT_DIR\"`"
+	while [ "`ls -lad \"$OUTPUT_DIR\"`" == "$LS_OUTPUT" ]; do
 		sleep 10
 	done
 }
 
 # Start provo
 function runProvo {
-	APP_DIRECTORY="$1"
-	CONNECTOR_DIRECTORY="$2"
+	APP_DIR="$1"
+	CONNECTOR_DIR="$2"
 	SUFFIX="$3"
 	
 	# Make profile
-	FIREFOX_PROFILE_DIRECTORY="$TEMP_PROFILE_DIRECTORY/firefox"
-	CHROME_PROFILE_DIRECTORY="$TEMP_PROFILE_DIRECTORY/chrome"
-	BOOKMARKLET_PAYLOAD_DIRECTORY="$CONNECTOR_DIRECTORY/build/bookmarklet/"
-	rm -rf "$TEMP_PROFILE_DIRECTORY"
-	mkdir -p "$FIREFOX_PROFILE_DIRECTORY/extensions"
-	mkdir "$FIREFOX_PROFILE_DIRECTORY/zotero"
-	cp "$SCRIPT_DIRECTORY/prefs.js" "$FIREFOX_PROFILE_DIRECTORY"
-	cp -r "$SCRIPT_DIRECTORY/provo@zotero.org" "$FIREFOX_PROFILE_DIRECTORY/extensions"
+	FIREFOX_PROFILE_DIR="$TEMP_PROFILE_DIR/firefox"
+	CHROME_PROFILE_DIR="$TEMP_PROFILE_DIR/chrome"
+	BOOKMARKLET_PAYLOAD_DIR="$CONNECTOR_DIR/build/bookmarklet/"
+	rm -rf "$TEMP_PROFILE_DIR"
+	mkdir -p "$FIREFOX_PROFILE_DIR/extensions"
+	mkdir "$FIREFOX_PROFILE_DIR/zotero"
+	cp "$SCRIPT_DIR/prefs.js" "$FIREFOX_PROFILE_DIR"
+	cp -R "$SCRIPT_DIR/provo@zotero.org" "$FIREFOX_PROFILE_DIR/extensions"
 	
 	if [ $TEST_GECKO == 1 ]; then
 		provorun="-provorun"
@@ -119,24 +123,24 @@ function runProvo {
 	
 	# Start Zotero Standalone and test Gecko if requested
 	if [ $MAC_NATIVE == 1 ]; then
-		"$APP_DIRECTORY/Contents/MacOS/zotero-bin" \
-		"$APP_DIRECTORY/Contents/Resources/application.ini" \
-		-profile "$FIREFOX_PROFILE_DIRECTORY" \
-		-provooutputdir "$OUTPUT_DIRECTORY" \
-		-provopayloaddir "$BOOKMARKLET_PAYLOAD_DIRECTORY" \
-		$provorun -provosuffix "$SUFFIX" &
+		"$APP_DIR/Contents/MacOS/zotero-bin" -app \
+			"$APP_DIR/Contents/Resources/application.ini" \
+			-profile "$FIREFOX_PROFILE_DIR" \
+			-provooutputdir "$OUTPUT_DIR" \
+			-provopayloaddir "$BOOKMARKLET_PAYLOAD_DIR" \
+			$provorun -provosuffix "$SUFFIX" &
 	elif [ $WIN_NATIVE == 1 ]; then
-		"$APP_DIRECTORY/zotero.exe" \
-		-profile "`cygpath -w \"$FIREFOX_PROFILE_DIRECTORY\"`" \
-		-provooutputdir "`cygpath -w \"$OUTPUT_DIRECTORY\"`" \
-		-provopayloaddir "`cygpath -w \"$BOOKMARKLET_PAYLOAD_DIRECTORY\"`" \
-		$provorun -provosuffix "$SUFFIX" &
+		"$APP_DIR/zotero.exe" \
+			-profile "`cygpath -w \"$FIREFOX_PROFILE_DIR\"`" \
+			-provooutputdir "`cygpath -w \"$OUTPUT_DIR\"`" \
+			-provopayloaddir "`cygpath -w \"$BOOKMARKLET_PAYLOAD_DIR\"`" \
+			$provorun -provosuffix "$SUFFIX" &
 	else
-		"$APP_DIRECTORY/zotero" \
-		-profile "$FIREFOX_PROFILE_DIRECTORY" \
-		-provooutputdir "$OUTPUT_DIRECTORY" \
-		-provopayloaddir "$BOOKMARKLET_PAYLOAD_DIRECTORY" \
-		$provorun -provosuffix "$SUFFIX" &
+		"$APP_DIR/zotero" \
+			-profile "$FIREFOX_PROFILE_DIR" \
+			-provooutputdir "$OUTPUT_DIR" \
+			-provopayloaddir "$BOOKMARKLET_PAYLOAD_DIR" \
+			$provorun -provosuffix "$SUFFIX" &
 	fi
 	ZOTERO_PID=$!
 	
@@ -150,31 +154,31 @@ function runProvo {
 	
 	# Test bookmarklets
 	if [ $TEST_BOOKMARKLET_IE == 1 ]; then
-		testBookmarklet "$CONNECTOR_DIRECTORY" "i" "$SUFFIX"
+		testBookmarklet "$CONNECTOR_DIR" "i" "$SUFFIX"
 	fi
 	if [ $TEST_BOOKMARKLET_CHROME == 1 ]; then
-		testBookmarklet "$CONNECTOR_DIRECTORY" "c" "$SUFFIX"
+		testBookmarklet "$CONNECTOR_DIR" "c" "$SUFFIX"
 	fi
 	if [ $TEST_BOOKMARKLET_GECKO == 1 ]; then
-		testBookmarklet "$CONNECTOR_DIRECTORY" "g" "$SUFFIX"
+		testBookmarklet "$CONNECTOR_DIR" "g" "$SUFFIX"
 	fi
 	
 	if [ $TEST_CHROME == 1 ]; then
 		# Test Chrome
 		if [ $MAC_NATIVE == 1 ]; then
 			"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-			--user-data-dir="$CHROME_PROFILE_DIRECTORY" \
-			--load-extension="$CONNECTOR_DIRECTORY/build/chrome" \
-			--new-window "http://127.0.0.1:23119/provo/run" &
+				--user-data-dir="$CHROME_PROFILE_DIR" \
+				--load-extension="$CONNECTOR_DIR/build/chrome" \
+				--new-window "http://127.0.0.1:23119/provo/run" &
 		elif [ $WIN_NATIVE == 1 ]; then
 			"`cygpath \"$LOCALAPPDATA\"`"/Google/Chrome/Application/chrome \
-			--user-data-dir="`cygpath -w \"$CHROME_PROFILE_DIRECTORY\"`" \
-			--load-extension="`cygpath -w \"$CONNECTOR_DIRECTORY/build/chrome\"`" \
-			--new-window "http://127.0.0.1:23119/provo/run" &
+				--user-data-dir="`cygpath -w \"$CHROME_PROFILE_DIR\"`" \
+				--load-extension="`cygpath -w \"$CONNECTOR_DIR/build/chrome\"`" \
+				--new-window "http://127.0.0.1:23119/provo/run" &
 		else
-			chromium --user-data-dir="$CHROME_PROFILE_DIRECTORY" \
-			--load-extension="$CONNECTOR_DIRECTORY/build/chrome" \
-			--new-window "http://127.0.0.1:23119/provo/run" &
+			chromium --user-data-dir="$CHROME_PROFILE_DIR" \
+				--load-extension="$CONNECTOR_DIR/build/chrome" \
+				--new-window "http://127.0.0.1:23119/provo/run" &
 		fi
 		CHROME_PID=$!
 		
@@ -186,9 +190,9 @@ function runProvo {
 	# Test Safari
 	if [ $TEST_SAFARI == 1 ]; then
 		# Clear cache
-		rm -rf "$SAFARI_CACHE_DIRECTORY"
+		rm -rf "$SAFARI_CACHE_DIR"
 		# Update extension
-		cp -r "$CONNECTOR_DIRECTORY/dist/Zotero_Connector.safariextz" "$SAFARI_EXTENSION_LOCATION"
+		cp -R "$CONNECTOR_DIR/dist/Zotero_Connector.safariextz" "$SAFARI_EXTENSION_LOCATION"
 		# Launch Safari to run tests
 		if [ $MAC_NATIVE == 1 ]; then
 			"/Applications/Safari.app/Contents/MacOS/Safari" &
@@ -209,106 +213,130 @@ function runProvo {
 	
 	# Test server
 	if [ $TEST_SERVER == 1 ]; then
-		if [ ! -d "$TRANSLATION_SERVER_DIRECTORY" ]; then
-			echo "$TRANSLATION_SERVER_DIRECTORY does not exist; not testing translation-server"
+		if [ ! -d "$TRANSLATION_SERVER_DIR" ]; then
+			echo "$TRANSLATION_SERVER_DIR does not exist; not testing translation-server"
 		else
-			outputFile="$OUTPUT_DIRECTORY/testResults-v-$SUFFIX.json"
+			outputFile="$OUTPUT_DIR/testResults-v-$SUFFIX.json"
 			if [ $WIN_NATIVE == 1 ]; then
 				outputFile="`cygpath -w \"$outputFile\"`"
 			fi
 			
-			pushd "$TRANSLATION_SERVER_DIRECTORY"
+			cd "$TRANSLATION_SERVER_DIR"
 			./build.sh
-			popd
-			"$TRANSLATION_SERVER_DIRECTORY/build/run_translation-server.sh" -test "$outputFile"
+			"$TRANSLATION_SERVER_DIR/build/run_translation-server.sh" -test "$outputFile"
 		fi
 	fi
 }
 
 # Test an unpacked release
 function testRelease {
-	RELEASE_DIRECTORY="$1"
+	RELEASE_DIR="$1"
 	SUFFIX="$2"
 	
-	rm -rf "$RELEASE_DIRECTORY/translators.zip" \
-		"$RELEASE_DIRECTORY/translators.index" \
-		"$RELEASE_DIRECTORY/translators"
-	mkdir "$RELEASE_DIRECTORY/translators"
-	cp -r "$TRANSLATORS_DIRECTORY/"*.js "$RELEASE_DIRECTORY/translators"
-	runProvo "$RELEASE_DIRECTORY" "$ZC_DIRECTORY" "$SUFFIX"
+	rm -rf "$RELEASE_DIR/translators.zip" \
+		"$RELEASE_DIR/translators.index" \
+		"$RELEASE_DIR/translators"
+	mkdir "$RELEASE_DIR/translators"
+	cp -R "$TRANSLATORS_DIR/"*.js "$RELEASE_DIR/translators"
+	runProvo "$RELEASE_DIR" "$CONNECTORS_DIR" "$SUFFIX"
 }
 
 # Test a branch from git
 function testBranch {
-	BRANCH="$1"
-	
-	# Build Zotero XPI
-	"$ZB_DIRECTORY/xpi/build_xpi_4.0" "$BRANCH" test
-	
-	pushd "$ZB_DIRECTORY/xpi/build/zotero"
-	SUFFIX="$BRANCH.SOURCE.`git log -n 1 --pretty='format:%h'`"
-	perl -pi -e "s/((?:HTTP_)?BOOKMARKLET_ORIGIN *: *)'[^']*/\$1'"'http:\/\/127.0.0.1:23119'"/g" \
-		chrome/content/zotero/xpcom/zotero.js
-	perl -pi -e 's/https:\/\/www\.zotero\.org\/bookmarklet\//http:\/\/127.0.0.1:23119\/provo\/bookmarklet\//g' \
-		chrome/content/zotero/xpcom/zotero.js
-	popd
+	local branch="$1"
+	suffix=$(buildXPI $branch) # Don't use 'local' here because it hides subshell failures
 	
 	# Build connectors
-	pushd "$ZC_DIRECTORY"
-	git reset --hard
-	git pull
-	git submodule update
+	cd "$CONNECTORS_DIR"
 	cp src/bookmarklet/tests/zotero_config.js src/bookmarklet/zotero_config.js
 	./build.sh -d
-	popd
 	
 	# Build Zotero Standalone
-	pushd "$ZSA_DIRECTORY"
-	./build.sh -f "$ZB_DIRECTORY/xpi/build/zotero-build.xpi" -d -p "$PLATFORMS"
-	runProvo "$ZSA_STAGE_DIRECTORY" "$ZC_DIRECTORY" "$SUFFIX"
-	popd
+	cp "$STANDALONE_BUILD_DIR"
+	./build.sh -f "$ZOTERO_BUILD_DIR/xpi/build/zotero-build.xpi" -d -p "$PLATFORMS"
+	runProvo "$STANDALONE_STAGE_DIR" "$CONNECTORS_DIR" "$suffix"
 }
 
-# Make sure zotero-build directory exists, or else clone it
-if [ ! -d "$ZB_DIRECTORY" ]; then
-	if [ -e "$ZB_DIRECTORY" ]; then
-		echo "Specified ZB_DIRECTORY exists but is not a directory. Exiting." 1>&2
-		exit 1
+function buildXPI {
+	echo "Building XPI"
+	
+	local branch=$1
+	
+	# Build Zotero XPI
+	if [ $branch = 4.0 ]; then
+		"$ZOTERO_BUILD_DIR/xpi/build_xpi_4.0" $branch test
+	else
+		"$ZOTERO_BUILD_DIR/xpi/build_xpi" -b $branch -c test
 	fi
-	git clone --recursive "$ZB_REPOSITORY" "$ZB_DIRECTORY"
-	pushd "$ZB_DIRECTORY"
-	mkdir xpi/build/zotero
-	popd
-fi
+	
+	# Replace URLs for bookmarklet
+	cd "$ZOTERO_BUILD_DIR/xpi/build/zotero"
+	local version="$branch.SOURCE.`git log -n 1 --pretty='format:%h'`"
+	perl -pi -e "s/((?:HTTP_)?BOOKMARKLET_ORIGIN *: *)'[^']*/\$1'"'http:\/\/127.0.0.1:23119'"/g" \
+		resource/config.js
+	perl -pi -e 's/https:\/\/www\.zotero\.org\/bookmarklet\//http:\/\/127.0.0.1:23119\/provo\/bookmarklet\//g' \
+		resource/config.js
+	zip ../zotero-build.xpi resource/config.js
+	
+	echo $version
+}
 
-# Make sure zotero-standalone-build directory exists, or else clone it
-if [ ! -d "$ZSA_DIRECTORY" ]; then
-	if [ -e "$ZSA_DIRECTORY" ]; then
-		echo "Specified ZSA_DIRECTORY exists but is not a directory. Exiting." 1>&2
-		exit 1
-	fi
-	git clone --recursive "$ZSA_REPOSITORY" "$ZSA_DIRECTORY"
-	pushd "$ZSA_DIRECTORY"
+#
+# Main
+#
+
+# Create zotero-build directory if it doesn't exist, or else update it
+echo "Updating Zotero build directory"
+if [ ! -d "$ZOTERO_BUILD_DIR" ]; then
+	git clone --recursive "$BUILD_REPO" "$ZOTERO_BUILD_DIR"
+	buildXPI $BRANCH
+else
+	cd "$ZOTERO_BUILD_DIR"
+	git pull origin master
+	git submodule update
+fi
+echo
+
+# Create zotero-standalone-build directory if it doesn't exist, or else update it
+echo "Updating Standalone build directory"
+if [ ! -d "$STANDALONE_BUILD_DIR" ]; then
+	git clone --recursive "$STANDALONE_REPO" "$STANDALONE_BUILD_DIR"
+	
+	cd "$STANDALONE_BUILD_DIR"
 	./fetch_xulrunner.sh -p "$PLATFORMS"
-	popd
-fi
-
-# Make sure zotero-connectors directory exists, or else clone it
-if [ ! -d "$ZC_DIRECTORY" ]; then
-	if [ -e "$ZC_DIRECTORY" ]; then
-		echo "Specified ZC_DIRECTORY directory exists but is not a directory. Exiting." 1>&2
-		exit 1
+else
+	cd "$STANDALONE_BUILD_DIR"
+	git pull origin master
+	git submodule update
+	if [ "`git pull origin master`" != "Already up-to-date." ]; then
+		./fetch_xulrunner.sh -p "$PLATFORMS"
 	fi
-	git clone --recursive "$ZC_REPOSITORY" "$ZC_DIRECTORY"
 fi
+echo
+
+# Create zotero-connectors directory if it doesn't exist, or else update it
+echo "Updating connectors"
+if [ ! -d "$CONNECTORS_DIR" ]; then
+	git clone --recursive "$ZC_REPO" "$CONNECTORS_DIR"
+else
+	cd "$CONNECTORS_DIR"
+	git pull origin master
+	git submodule update
+fi
+echo
+
+# Make sure translators directory exists and is up-to-date
+echo "Updating translators"
+if [ ! -d "$TRANSLATORS_DIR" ]; then
+	git clone $TRANSLATORS_REPO "$TRANSLATORS_DIR"
+else
+	cd "$TRANSLATORS_DIR"
+	git pull origin master
+fi
+echo
 
 # Make output directory
-mkdir -p "$OUTPUT_DIRECTORY"
-
-# Update translators
-pushd "$TRANSLATORS_DIRECTORY"
-git pull origin master
-popd
+mkdir -p "$OUTPUT_DIR"
 
 # Start Xvfb on *NIX
 XVFB_PID=
@@ -320,8 +348,8 @@ if [ $MAC_NATIVE != 1 -a $WIN_NATIVE != 1 -a -z "$DISPLAY" ]; then
 fi
 
 # Run prerun.sh if it exists
-if [ -e "$SCRIPT_DIRECTORY/prerun.sh" ]; then
-	. "$SCRIPT_DIRECTORY/prerun.sh"
+if [ -e "$SCRIPT_DIR/prerun.sh" ]; then
+	. "$SCRIPT_DIR/prerun.sh"
 fi
 
 # Test
@@ -332,9 +360,9 @@ if [ -n "$XVFB_PID" ]; then
 	kill "$XVFB_PID"
 fi
 
-rm -rf "$TEMP_PROFILE_DIRECTORY"
+rm -rf "$TEMP_PROFILE_DIR"
 
 # Run postrun.sh if it exists
-if [ -e "$SCRIPT_DIRECTORY/postrun.sh" ]; then
-	. "$SCRIPT_DIRECTORY/postrun.sh"
+if [ -e "$SCRIPT_DIR/postrun.sh" ]; then
+	. "$SCRIPT_DIR/postrun.sh"
 fi

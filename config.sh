@@ -1,17 +1,20 @@
 #!/bin/bash
-ZSA_REPOSITORY="git://github.com/zotero/zotero-standalone-build.git"
-ZSA_DIRECTORY="$SCRIPT_DIRECTORY/zotero-standalone-build"
+STANDALONE_BUILD_REPO="git://github.com/zotero/zotero-standalone-build.git"
+STANDALONE_BUILD_DIR="$SCRIPT_DIR/zotero-standalone-build"
 
-ZB_REPOSITORY="git://github.com/zotero/zotero-build.git"
-ZB_DIRECTORY="$SCRIPT_DIRECTORY/zotero-build"
+ZOTERO_BUILD_REPO="git://github.com/zotero/zotero-build.git"
+ZOTERO_BUILD_DIR="$SCRIPT_DIR/zotero-build"
 
-ZC_REPOSITORY="git://github.com/zotero/zotero-connectors.git"
-ZC_DIRECTORY="$SCRIPT_DIRECTORY/zotero-connectors"
+CONNECTORS_REPO="git://github.com/zotero/zotero-connectors.git"
+CONNECTORS_DIR="$SCRIPT_DIR/zotero-connectors"
 
-TRANSLATION_SERVER_DIRECTORY="$SCRIPT_DIRECTORY/translation-server"
+TRANSLATORS_REPO="git://github.com/zotero/translators.git"
+TRANSLATORS_DIR="$SCRIPT_DIR/translators"
 
-TEMP_PROFILE_DIRECTORY="$SCRIPT_DIRECTORY/tmp_profile"
-OUTPUT_DIRECTORY="$SCRIPT_DIRECTORY/output/`date -u +%Y-%m-%d`"
+TRANSLATION_SERVER_DIR="$SCRIPT_DIR/translation-server"
+
+TEMP_PROFILE_DIR="$SCRIPT_DIR/tmp_profile"
+OUTPUT_DIR="$SCRIPT_DIR/output/`date -u +%Y-%m-%d`"
 
 TEST_GECKO=1
 TEST_BOOKMARKLET_IE=0
@@ -24,9 +27,9 @@ TEST_SERVER=0
 # Safari extension directory
 # Safari homepage must be set to http://127.0.0.1:23119/provo/run for testing
 if [ "`uname`" == "Darwin" ]; then
-	SAFARI_CACHE_DIRECTORY="$HOME/Library/Caches/com.apple.Safari"
+	SAFARI_CACHE_DIR="$HOME/Library/Caches/com.apple.Safari"
 	SAFARI_EXTENSION_LOCATION="$HOME/Library/Caches/Safari/Extensions/Zotero Connector for Safari.safariextz"
 elif [ "`uname -o 2> /dev/null`" == "Cygwin" ]; then
-	SAFARI_CACHE_DIRECTORY="`cygpath -u \"$LOCALAPPDATA\"`/Apple Computer/Safari"
+	SAFARI_CACHE_DIR="`cygpath -u \"$LOCALAPPDATA\"`/Apple Computer/Safari"
 	SAFARI_EXTENSION_LOCATION="`cygpath -u \"$APPDATA\"`/Apple Computer/Safari/Extensions/Zotero Connector for Safari.safariextz"
 fi
