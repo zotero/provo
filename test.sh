@@ -244,7 +244,10 @@ function testRelease {
 # Test a branch from git
 function testBranch {
 	local branch="$1"
-	suffix=$(buildXPI $branch) # Don't use 'local' here because it hides subshell failures
+	buildXPI $branch
+	
+	cd "$ZOTERO_BUILD_DIR/xpi/build/zotero"
+	local version="$branch.SOURCE.`git log -n 1 --pretty='format:%h'`"
 	
 	# Build connectors
 	cd "$CONNECTORS_DIR"
@@ -252,9 +255,9 @@ function testBranch {
 	./build.sh -d
 	
 	# Build Zotero Standalone
-	cp "$STANDALONE_BUILD_DIR"
+	cd "$STANDALONE_BUILD_DIR"
 	./build.sh -f "$ZOTERO_BUILD_DIR/xpi/build/zotero-build.xpi" -d -p "$PLATFORMS"
-	runProvo "$STANDALONE_STAGE_DIR" "$CONNECTORS_DIR" "$suffix"
+	runProvo "$STANDALONE_STAGE_DIR" "$CONNECTORS_DIR" "$version"
 }
 
 function buildXPI {
@@ -271,14 +274,11 @@ function buildXPI {
 	
 	# Replace URLs for bookmarklet
 	cd "$ZOTERO_BUILD_DIR/xpi/build/zotero"
-	local version="$branch.SOURCE.`git log -n 1 --pretty='format:%h'`"
 	perl -pi -e "s/((?:HTTP_)?BOOKMARKLET_ORIGIN *: *)'[^']*/\$1'"'http:\/\/127.0.0.1:23119'"/g" \
 		resource/config.js
 	perl -pi -e 's/https:\/\/www\.zotero\.org\/bookmarklet\//http:\/\/127.0.0.1:23119\/provo\/bookmarklet\//g' \
 		resource/config.js
 	zip ../zotero-build.xpi resource/config.js
-	
-	echo $version
 }
 
 #
@@ -340,7 +340,7 @@ mkdir -p "$OUTPUT_DIR"
 
 # Start Xvfb on *NIX
 XVFB_PID=
-if [ $MAC_NATIVE != 1 -a $WIN_NATIVE != 1 -a -z "$DISPLAY" ]; then
+if [ $MAC_NATIVE != 1 -a $WIN_NATIVE != 1 -a -z ${DISPLAY:-""} ]; then
 	export DISPLAY=":137"
 	Xvfb "$DISPLAY" &
 	XVFB_PID=$!
