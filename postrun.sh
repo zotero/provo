@@ -18,9 +18,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-if [ -z "$SCRIPT_DIRECTORY" ]; then
-	SCRIPT_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-	. "$SCRIPT_DIRECTORY/config.sh"
+if [ -z "$SCRIPT_DIR" ]; then
+	SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+	. "$SCRIPT_DIR/config.sh"
 fi
 
 if [ -e "/tmp/provo-ssh.pid" ]; then
@@ -29,8 +29,8 @@ fi
 
 BUCKET="zotero-translator-tests"
 
-pushd "$OUTPUT_DIRECTORY"
-	outputDirName="`basename $OUTPUT_DIRECTORY`"
+pushd "$OUTPUT_DIR"
+	outputDirName="`basename $OUTPUT_DIR`"
 	
 	# Upload
 	for testResults in testResults*json; do
