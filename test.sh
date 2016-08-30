@@ -24,6 +24,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 TRANSLATORS_DIR="$SCRIPT_DIR/zotero-translators"
 
 BRANCH=4.0
+REBUILD=1
 
 if [ "`uname`" = "Darwin" ]; then
 	MAC_NATIVE=1
@@ -246,19 +247,24 @@ function testRelease {
 # Test a branch from git
 function testBranch {
 	local branch="$1"
-	buildXPI $branch
+	if [ $REBUILD = "1" ]; then
+		buildXPI $branch
+	fi
 	
 	cd "$ZOTERO_BUILD_DIR/xpi/build/zotero"
 	local version="$branch.SOURCE.`git log -n 1 --pretty='format:%h'`"
 	
-	# Build connectors
-	cd "$CONNECTORS_DIR"
-	cp src/bookmarklet/tests/zotero_config.js src/bookmarklet/zotero_config.js
-	./build.sh -d
+	if [ $REBUILD = "1" ]; then
+		# Build connectors
+		cd "$CONNECTORS_DIR"
+		cp src/bookmarklet/tests/zotero_config.js src/bookmarklet/zotero_config.js
+		./build.sh -d
+		
+		# Build Zotero Standalone
+		cd "$STANDALONE_BUILD_DIR"
+		./build.sh -f "$ZOTERO_BUILD_DIR/xpi/build/zotero-build.xpi" -d -p "$PLATFORMS"
+	fi
 	
-	# Build Zotero Standalone
-	cd "$STANDALONE_BUILD_DIR"
-	./build.sh -f "$ZOTERO_BUILD_DIR/xpi/build/zotero-build.xpi" -d -p "$PLATFORMS"
 	runProvo "$STANDALONE_STAGE_DIR" "$CONNECTORS_DIR" "$version"
 }
 
