@@ -23,6 +23,8 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . "$SCRIPT_DIR/config.sh"
 TRANSLATORS_DIR="$SCRIPT_DIR/zotero-translators"
 
+BRANCH=4.0
+
 if [ "`uname`" = "Darwin" ]; then
 	MAC_NATIVE=1
 else
@@ -288,7 +290,7 @@ function buildXPI {
 # Create zotero-build directory if it doesn't exist, or else update it
 echo "Updating Zotero build directory"
 if [ ! -d "$ZOTERO_BUILD_DIR" ]; then
-	git clone --recursive "$BUILD_REPO" "$ZOTERO_BUILD_DIR"
+	git clone --recursive "$ZOTERO_BUILD_REPO" "$ZOTERO_BUILD_DIR"
 	buildXPI $BRANCH
 else
 	cd "$ZOTERO_BUILD_DIR"
@@ -300,7 +302,7 @@ echo
 # Create zotero-standalone-build directory if it doesn't exist, or else update it
 echo "Updating Standalone build directory"
 if [ ! -d "$STANDALONE_BUILD_DIR" ]; then
-	git clone --recursive "$STANDALONE_REPO" "$STANDALONE_BUILD_DIR"
+	git clone --recursive "$STANDALONE_BUILD_REPO" "$STANDALONE_BUILD_DIR"
 	
 	cd "$STANDALONE_BUILD_DIR"
 	./fetch_xulrunner.sh -p "$PLATFORMS"
@@ -317,7 +319,7 @@ echo
 # Create zotero-connectors directory if it doesn't exist, or else update it
 echo "Updating connectors"
 if [ ! -d "$CONNECTORS_DIR" ]; then
-	git clone --recursive "$ZC_REPO" "$CONNECTORS_DIR"
+	git clone --recursive "$CONNECTORS_REPO" "$CONNECTORS_DIR"
 else
 	cd "$CONNECTORS_DIR"
 	git pull origin master
@@ -353,7 +355,7 @@ if [ -e "$SCRIPT_DIR/prerun.sh" ]; then
 fi
 
 # Test
-testBranch 4.0
+testBranch $BRANCH
 
 # Clean up
 if [ -n "$XVFB_PID" ]; then
