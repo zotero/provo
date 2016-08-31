@@ -34,16 +34,17 @@ pushd "$OUTPUT_DIR"
 	
 	# Upload
 	for testResults in testResults*json; do
-		gzip "$testResults"
-		s3cmd put --add-header="Content-Encoding:gzip" "$testResults.gz" \
+		rm -f "$testResults.gz"
+		gzip -f "$testResults"
+		aws s3 cp --content-encoding=gzip "$testResults.gz" \
 			"s3://$BUCKET/$outputDirName/$testResults"
 		gunzip "$testResults.gz"
 	done
 	sleep 1
 	
 	# Build index
-	s3cmd ls "s3://$BUCKET/$outputDirName/" | grep -o 'testResults.*\.json' | \
+	aws s3 ls "s3://$BUCKET/$outputDirName/" | grep -o 'testResults.*\.json' | \
 		awk ' BEGIN { ORS = ""; print "["; } { print "/@"$0"/@"; } END { print "]"; }' | \
 		sed "s^\"^\\\\\"^g;s^\/\@\/\@^\", \"^g;s^\/\@^\"^g" > index.json
-	s3cmd put index.json "s3://$BUCKET/$outputDirName/index.json"
+	aws s3 cp index.json "s3://$BUCKET/$outputDirName/index.json"
 popd
