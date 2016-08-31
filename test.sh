@@ -96,8 +96,8 @@ DONE
 
 # Wait for $OUTPUT_DIR to change
 function waitForTestResults {
-	LS_OUTPUT="`ls -lad \"$OUTPUT_DIR\"`"
-	while [ "`ls -lad \"$OUTPUT_DIR\"`" == "$LS_OUTPUT" ]; do
+	LS_OUTPUT="`ls -lad \"$OUTPUT_DIR/*.json\"`"
+	while [ "`ls -lad \"$OUTPUT_DIR/*.json\"`" == "$LS_OUTPUT" ]; do
 		sleep 10
 	done
 }
@@ -131,6 +131,7 @@ function runProvo {
 			-profile "$FIREFOX_PROFILE_DIR" \
 			-provooutputdir "$OUTPUT_DIR" \
 			-provopayloaddir "$BOOKMARKLET_PAYLOAD_DIR" \
+			-jsconsole \
 			$provorun -provosuffix "$SUFFIX" &
 	elif [ $WIN_NATIVE == 1 ]; then
 		"$APP_DIR/zotero.exe" \

@@ -29,6 +29,7 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("chrome://zotero/content/tools/testTranslators/translatorTester.js");
 
 var Zotero, translatorsDir, outputDir, suffix;
+var collectedResults = {};
 
 const BOOKMARKLET_FILES = ["common.js", "common_ie.js", "ie_hack.js", "iframe.html",
 	"iframe.js", "iframe_ie.html", "iframe_ie.js", "tests/inject_test.js",
@@ -80,9 +81,16 @@ Provo.prototype = {
 		
 		// Allow 60 seconds for startup to complete and then start running translator tester
 		if(cmdLine.handleFlag("provorun", false)) {
+			let timeout = 60000;
 			Zotero.setTimeout(function() {
-				Zotero_TranslatorTesters.runAllTests(1, {}, writeData);
-			}, 60000);
+				Zotero_TranslatorTesters.runAllTests(
+					1,
+					{},
+					function (results, last) {
+						collectResults(Zotero.browser, Zotero.version, results, last);
+					}
+				);
+			}, timeout);
 		}
 	},
 	
@@ -116,7 +124,7 @@ ProvoSave.prototype = {
 	"supportedDataTypes":["application/json"],
 	
 	"init":function(data, sendResponseCallback) {
-		writeData(data);
+		writeData(data, true);
 		sendResponseCallback(200, "text/plain", "OK");
 	}
 };
@@ -140,29 +148,74 @@ function getFileEndpoint(file) {
 	return endpoint;
 }
 
+function collectResults(browser, version, results, last) {
+	if (!collectedResults[browser]) {
+		collectedResults[browser] = {
+			[version]: []
+		};
+	}
+	var o = collectedResults[browser][version];
+	o.push(results);
+	
+	//
+	// TODO: Only do the below every x collections, or if last == true
+	//
+	// Sort results
+	if ("getLocaleCollation" in Zotero) {
+		let collation = Zotero.getLocaleCollation();
+		var strcmp = function (a, b) {
+			return collation.compareString(1, a, b);
+		};
+	}
+	else {
+		var strcmp = function (a, b) {
+			return a.toLowerCase().localeCompare(b.toLowerCase());
+		};
+	}
+	o.sort(function (a, b) {
+		if (a.type !== b.type) {
+			return TEST_TYPES.indexOf(a.type) - TEST_TYPES.indexOf(b.type);
+		}
+		return strcmp(a.label, b.label);
+	});
+	
+	writeData(
+		{
+			browser,
+			version,
+			results: o
+		},
+		last
+	);
+}
+
 /**
  * Serialize output to a file
  */
-function writeData(data) {
-	// Write data
-	var outfile = outputDir.clone();
-	outfile.append("testResults-"+data.browser+(suffix ? "-"+suffix : "")+".json");
-	Zotero.File.putContents(outfile, JSON.stringify(data, null, "\t"));
+function writeData(data, done) {
+	var outputFile = outputDir.clone();
+	var outputFileName = "testResults-" + data.browser + (suffix ? "-" + suffix : "") + ".json";
+	outputFile.append(outputFileName + ".tmp");
+	Zotero.File.putContents(outputFile, JSON.stringify(data, null, "\t"));
 	
-	// Create index of output directory
-	var index = [];
-	var directoryEntries = outputDir.directoryEntries;
-	while(directoryEntries.hasMoreElements()) {
-		var filename = directoryEntries.getNext()
-			.QueryInterface(Components.interfaces.nsILocalFile).leafName;
-		if(/\.json$/.test(filename) && filename !== "index.json") {
-			index.push(filename);
+	if (done) {
+		// Remove .tmp extension
+		outputFile.moveTo(null, outputFileName);
+		
+		// Create updated index of output directory
+		var index = [];
+		var directoryEntries = outputDir.directoryEntries;
+		while(directoryEntries.hasMoreElements()) {
+			var filename = directoryEntries.getNext()
+				.QueryInterface(Components.interfaces.nsILocalFile).leafName;
+			if(/\.json$/.test(filename) && filename !== "index.json") {
+				index.push(filename);
+			}
 		}
+		var indexFile = outputDir.clone();
+		indexFile.append("index.json");
+		Zotero.File.putContents(indexFile, JSON.stringify(index, null, "\t"));
 	}
-	
-	var indexFile = outputDir.clone();
-	indexFile.append("index.json");
-	Zotero.File.putContents(indexFile, JSON.stringify(index, null, "\t"));
 }
 
 /**
