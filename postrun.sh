@@ -29,7 +29,7 @@ fi
 
 BUCKET="zotero-translator-tests"
 
-pushd "$OUTPUT_DIR"
+pushd "$OUTPUT_DIR" > /dev/null
 	outputDirName="`basename $OUTPUT_DIR`"
 	
 	# Upload
@@ -47,4 +47,4 @@ pushd "$OUTPUT_DIR"
 		awk ' BEGIN { ORS = ""; print "["; } { print "/@"$0"/@"; } END { print "]"; }' | \
 		sed "s^\"^\\\\\"^g;s^\/\@\/\@^\", \"^g;s^\/\@^\"^g" > index.json
 	aws s3 cp index.json "s3://$BUCKET/$outputDirName/index.json"
-popd
+popd > /dev/null
