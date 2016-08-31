@@ -96,10 +96,12 @@ DONE
 
 # Wait for $OUTPUT_DIR to change
 function waitForTestResults {
-	LS_OUTPUT="`ls -lad \"$OUTPUT_DIR/*.json\"`"
-	while [ "`ls -lad \"$OUTPUT_DIR/*.json\"`" == "$LS_OUTPUT" ]; do
+	set +e
+	LS_OUTPUT="`ls -la "$OUTPUT_DIR\"/*.json`"
+	while [ "`ls -la \"$OUTPUT_DIR\"/*.json`" == "$LS_OUTPUT" ]; do
 		sleep 10
 	done
+	set -e
 }
 
 # Start provo
