@@ -14,7 +14,7 @@ TRANSLATORS_DIR="$SCRIPT_DIR/translators"
 TRANSLATION_SERVER_DIR="$SCRIPT_DIR/translation-server"
 
 TEMP_PROFILE_DIR="$SCRIPT_DIR/tmp_profile"
-OUTPUT_DIR="$SCRIPT_DIR/output/`date -u +%Y-%m-%d`"
+OUTPUT_DIR="${OUTPUT_DIR:-$SCRIPT_DIR/output/`date -u +%Y-%m-%d`}"
 
 TEST_GECKO=1
 TEST_BOOKMARKLET_IE=0
