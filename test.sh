@@ -97,7 +97,7 @@ DONE
 # Wait for $OUTPUT_DIR to change
 function waitForTestResults {
 	set +e
-	LS_OUTPUT="`ls -la "$OUTPUT_DIR\"/*.json 2>/dev/null`"
+	LS_OUTPUT="`ls -la \"$OUTPUT_DIR\"/*.json 2>/dev/null`"
 	while [ "`ls -la \"$OUTPUT_DIR\"/*.json 2>/dev/null`" == "$LS_OUTPUT" ]; do
 		sleep 10
 	done
