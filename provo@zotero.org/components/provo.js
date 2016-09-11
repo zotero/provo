@@ -29,7 +29,6 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("chrome://zotero/content/tools/testTranslators/translatorTester.js");
 
 var Zotero, translatorsDir, outputDir, suffix;
-var collectedResults = {};
 
 const TEST_TYPES = ["web", "import", "export", "search"];
 const BOOKMARKLET_FILES = ["common.js", "common_ie.js", "ie_hack.js", "iframe.html",
@@ -88,7 +87,14 @@ Provo.prototype = {
 					1,
 					{},
 					function (results, last) {
-						collectResults(Zotero.browser, Zotero.version, results, last);
+						writeData(
+							{
+								browser: Zotero.browser,
+								version: Zotero.version,
+								results,
+							},
+							last
+						);
 					}
 				);
 			}, timeout);
@@ -149,57 +155,16 @@ function getFileEndpoint(file) {
 	return endpoint;
 }
 
-function collectResults(browser, version, results, last) {
-	if (!collectedResults[browser]) {
-		collectedResults[browser] = {
-			[version]: []
-		};
-	}
-	var o = collectedResults[browser][version];
-	o.push(results);
-	
-	//
-	// TODO: Only do the below every x collections, or if last == true
-	//
-	// Sort results
-	if ("getLocaleCollation" in Zotero) {
-		let collation = Zotero.getLocaleCollation();
-		var strcmp = function (a, b) {
-			return collation.compareString(1, a, b);
-		};
-	}
-	else {
-		var strcmp = function (a, b) {
-			return a.toLowerCase().localeCompare(b.toLowerCase());
-		};
-	}
-	o.sort(function (a, b) {
-		if (a.type !== b.type) {
-			return TEST_TYPES.indexOf(a.type) - TEST_TYPES.indexOf(b.type);
-		}
-		return strcmp(a.label, b.label);
-	});
-	
-	writeData(
-		{
-			browser,
-			version,
-			results: o
-		},
-		last
-	);
-}
-
 /**
  * Serialize output to a file
  */
-function writeData(data, done) {
+function writeData(data, last) {
 	var outputFile = outputDir.clone();
 	var outputFileName = "testResults-" + data.browser + (suffix ? "-" + suffix : "") + ".json";
 	outputFile.append(outputFileName + ".tmp");
 	Zotero.File.putContents(outputFile, JSON.stringify(data, null, "\t"));
 	
-	if (done) {
+	if (last) {
 		// Remove .tmp extension
 		outputFile.moveTo(null, outputFileName);
 		
