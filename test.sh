@@ -257,6 +257,8 @@ function testBranch {
 	cd "$ZOTERO_BUILD_DIR/xpi/build/zotero"
 	local version="$branch.SOURCE.`git log -n 1 --pretty='format:%h'`"
 	
+	git -C "$ZOTERO_BUILD_DIR/xpi/build/zotero/translators" pull origin master
+	
 	if [ $REBUILD = "1" ]; then
 		# Build connectors
 		cd "$CONNECTORS_DIR"
