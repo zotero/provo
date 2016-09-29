@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Copyright (c) 2012  Zotero
 #                     Center for History and New Media
@@ -18,13 +19,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-if [ -z "$SCRIPT_DIR" ]; then
+if [ -z "${SCRIPT_DIR:-}" ]; then
 	SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 	. "$SCRIPT_DIR/config.sh"
 fi
 
+if [ -n "$1" ]; then
+	OUTPUT_DIR="$1"
+fi
+
 if [ -e "/tmp/provo-ssh.pid" ]; then
-	kill `cat /tmp/provo-ssh.pid`
+	kill `cat /tmp/provo-ssh.pid` || true
 fi
 
 BUCKET="zotero-translator-tests"
@@ -32,13 +37,18 @@ BUCKET="zotero-translator-tests"
 pushd "$OUTPUT_DIR" > /dev/null
 	outputDirName="`basename $OUTPUT_DIR`"
 	
-	# Upload
-	for testResults in testResults*json; do
-		rm -f "$testResults.gz"
-		gzip -f "$testResults"
-		aws s3 cp --content-encoding=gzip "$testResults.gz" \
-			"s3://$BUCKET/$outputDirName/$testResults"
-		gunzip "$testResults.gz"
+	shopt -s nullglob
+	
+	# Gzip
+	for file in testResults*json; do
+		rm -f "$file.gz"
+		gzip -f "$file"
+	done
+	# Upload and gunzip
+	for file in testResults*gz; do
+		base=${file%.gz}
+		aws s3 cp --content-encoding=gzip "$file" "s3://$BUCKET/$outputDirName/$base"
+		gunzip "$file"
 	done
 	sleep 1
 	
