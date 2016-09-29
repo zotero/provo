@@ -286,12 +286,17 @@ function buildXPI {
 	fi
 	
 	# Replace URLs for bookmarklet
-	cd "$ZOTERO_BUILD_DIR/xpi/build/zotero"
+	cd "$ZOTERO_BUILD_DIR/xpi/build"
+	mkdir -p tmp/resource
+	cp zotero/resource/config.js tmp/resource
+	cd tmp
 	perl -pi -e "s/((?:HTTP_)?BOOKMARKLET_ORIGIN *: *)'[^']*/\$1'"'http:\/\/127.0.0.1:23119'"/g" \
 		resource/config.js
 	perl -pi -e 's/https:\/\/www\.zotero\.org\/bookmarklet\//http:\/\/127.0.0.1:23119\/provo\/bookmarklet\//g' \
 		resource/config.js
 	zip ../zotero-build.xpi resource/config.js
+	cd ..
+	rm -rf tmp
 }
 
 #
