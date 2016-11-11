@@ -24,7 +24,7 @@ if [ -z "${SCRIPT_DIR:-}" ]; then
 	. "$SCRIPT_DIR/config.sh"
 fi
 
-if [ -n "$1" ]; then
+if [ -n "${1:-}" ]; then
 	OUTPUT_DIR="$1"
 fi
 
