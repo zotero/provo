@@ -3,7 +3,9 @@ set -euo pipefail
 
 if [ -z "${SCRIPT_DIR:-}" ]; then
 	SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-	. "$SCRIPT_DIR/config.sh"
+	if [ -f "$SCRIPT_DIR/config.sh" ]; then
+		. "$SCRIPT_DIR/config.sh"
+	fi
 fi
 
 if [ -n "${1:-}" ]; then
