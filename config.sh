@@ -11,18 +11,19 @@ CONNECTORS_DIR="$SCRIPT_DIR/zotero-connectors"
 TRANSLATORS_REPO="git://github.com/zotero/translators.git"
 TRANSLATORS_DIR="$SCRIPT_DIR/translators"
 
+TRANSLATION_SERVER_REPO="git@github.com:zotero/translation-server.git"
 TRANSLATION_SERVER_DIR="$SCRIPT_DIR/translation-server"
 
 TEMP_PROFILE_DIR="$SCRIPT_DIR/tmp_profile"
 OUTPUT_DIR="${OUTPUT_DIR:-$SCRIPT_DIR/output/`date -u +%Y-%m-%d`}"
 
-TEST_GECKO=1
+TEST_GECKO=0
 TEST_BOOKMARKLET_IE=0
 TEST_BOOKMARKLET_CHROME=0
 TEST_BOOKMARKLET_GECKO=0
 TEST_CHROME=0
 TEST_SAFARI=0
-TEST_SERVER=0
+TEST_SERVER=1
 
 # Safari extension directory
 # Safari homepage must be set to http://127.0.0.1:23119/provo/run for testing
