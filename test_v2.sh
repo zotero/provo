@@ -3,7 +3,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . "$SCRIPT_DIR/config.sh"
-TRANSLATORS_DIR="$SCRIPT_DIR/zotero-translators"
 
 if [ "`uname`" = "Darwin" ]; then
 	MAC_NATIVE=1
