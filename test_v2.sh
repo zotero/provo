@@ -28,7 +28,7 @@ function runTests {
 			outputFile="$OUTPUT_DIR/testResults-v-$suffix.json"
 			
 			cd "$TRANSLATION_SERVER_DIR"
-			nodejs ./test/testTranslators/testTranslators.js -o "$outputFile" -g "PubMed" > /dev/null
+			node ./test/testTranslators/testTranslators.js -o "$outputFile"
 		fi
 	fi
 }
