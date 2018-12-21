@@ -27,7 +27,7 @@ function runTests {
 			outputFile="$OUTPUT_DIR/testResults-v-$suffix.json"
 			
 			cd "$TRANSLATION_SERVER_DIR"
-			node ./test/testTranslators/testTranslators.js -o "$outputFile"
+			TRANSLATORS_DIR=$TRANSLATORS_DIR node ./test/testTranslators/testTranslators.js -o "$outputFile"
 		fi
 	fi
 }
