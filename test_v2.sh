@@ -54,6 +54,7 @@ if [ ! -d "$TRANSLATION_SERVER_DIR" ]; then
 	npm i
 else
 	cd "$TRANSLATION_SERVER_DIR"
+	git checkout package-lock.json
 	git pull origin master
 	git submodule update modules/zotero
 	npm i
